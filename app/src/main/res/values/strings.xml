@@ -1,10 +1,68 @@
 <resources>
     <string name="app_name" translatable="false">ETHnym</string>
-    <string name="settings">Settings</string>
+
+    <!-- Navigation -->
+    <string name="tab_wallets">Wallets</string>
+    <string name="tab_address_book">Contacts</string>
+    <string name="tab_send">Send</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_backup">Backup</string>
+    <string name="tab_settings">Settings</string>
     <string name="back">Back</string>
-    <string name="total_balance">Total balance</string>
-    <string name="balance_zero">0 ETH</string>
-    <string name="balance_hidden" translatable="false">••••••</string>
-    <string name="hide_balances">Hide balances</string>
-    <string name="hide_balances_summary">Mask amounts on the home screen</string>
+    <string name="toggle_theme">Toggle light/dark theme</string>
+    <string name="log_out">Log out (deselect wallet)</string>
+
+    <!-- Common actions and labels -->
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="copy">Copy</string>
+    <string name="copied">Copied!</string>
+    <string name="create">Create</string>
+    <string name="decrypt">Decrypt</string>
+    <string name="delete">Delete</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="download">Download</string>
+    <string name="encrypt">Encrypt</string>
+    <string name="export">Export</string>
+    <string name="import_">Import</string>
+    <string name="look_up">Look up</string>
+    <string name="max">Max</string>
+    <string name="more_options">More options</string>
+    <string name="ok">OK</string>
+    <string name="refresh">Refresh</string>
+    <string name="remove">Remove</string>
+    <string name="reset">Reset</string>
+    <string name="save">Save</string>
+    <string name="send">Send</string>
+    <string name="sign">Sign</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="loading">Loading…</string>
+    <string name="error">Error</string>
+    <string name="no_results">No results match.</string>
+    <string name="verified">Verified</string>
+    <string name="current">current</string>
+    <string name="name">Name</string>
+    <string name="password">Password</string>
+    <string name="strong_password">Strong password</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="wrong_password">Wrong password. Please try again.</string>
+
+    <!-- Addresses, ENS and QR -->
+    <string name="address_or_ens">Address or ENS</string>
+    <string name="address_or_ens_placeholder">0x… or name.eth</string>
+    <string name="look_up_ens">Look up ENS</string>
+    <string name="ens_invalid">Invalid ENS</string>
+    <string name="ens_failed">Failed to resolve ENS: %1$s</string>
+    <string name="scan_qr_code">Scan QR code</string>
+    <string name="qr_code">QR code</string>
+    <string name="camera_permission_needed">Camera access is needed to scan QR codes.</string>
+    <string name="grant_permission">Allow camera</string>
+    <string name="pick_from_address_book">Pick from address book</string>
+    <string name="address_book">Address book</string>
+    <string name="my_addresses">My addresses</string>
+    <string name="contacts">Contacts</string>
+    <string name="search_name_or_address">Search name or address…</string>
+    <string name="no_addresses_saved">No addresses saved yet.</string>
 </resources>

@@ -1,0 +1,50 @@
+<resources>
+    <string name="send_eth">ETH</string>
+    <string name="sending">Sending</string>
+    <string name="balance_value">Balance: %1$s</string>
+    <string name="recipient">Recipient</string>
+    <string name="recipient_info">Enter the recipient\'s address. You can also enter an ENS name; tap the search icon to resolve it to an address before sending.</string>
+    <string name="gas_preset">Gas preset</string>
+    <string name="gwei_value">%1$s gwei</string>
+    <string name="amount">Amount</string>
+
+    <!-- Token and NFT -->
+    <string name="select_token">Select token</string>
+    <string name="token_address">Token address or ENS</string>
+    <string name="search_tokens">Search by name or symbol…</string>
+    <string name="no_tokens_found">No tokens found</string>
+    <string name="select_nft">Select NFT</string>
+    <string name="collection_address">Collection address or ENS</string>
+    <string name="token_id">Token ID</string>
+    <string name="search_nfts">Search by name, symbol or token ID…</string>
+    <string name="enter_token_id_manually">Enter the token ID manually</string>
+    <string name="owned_by">Owned by</string>
+    <string name="not_owner">The active wallet does not own this token.</string>
+
+    <!-- Sign (raw transaction) -->
+    <string name="transaction_json">Transaction JSON</string>
+    <string name="transaction_json_placeholder" formatted="false">{"to": "0x…", "chainId": 1, "type": "eip1559", "gas": "0x…", "maxFeePerGas": "0x…", "maxPriorityFeePerGas": "0x…"}</string>
+    <string name="transaction_details">Transaction details</string>
+    <string name="detail_chain">Chain</string>
+    <string name="detail_to">To</string>
+    <string name="detail_from">From</string>
+    <string name="detail_value">Value</string>
+    <string name="detail_type">Type</string>
+    <string name="detail_gas">Gas</string>
+    <string name="detail_nonce">Nonce</string>
+    <string name="detail_max_fee">Max fee per gas</string>
+    <string name="detail_max_priority_fee">Max priority fee</string>
+    <string name="detail_data">Data</string>
+    <string name="sign_offline_hint">Offline mode is on: the transaction is signed but not broadcast. Include nonce, gas, maxFeePerGas and maxPriorityFeePerGas.</string>
+    <string name="signed_transaction">Signed transaction</string>
+
+    <!-- Transaction status -->
+    <string name="status_nothing_to_sign">Nothing to sign</string>
+    <string name="status_pending_signature">Pending signature</string>
+    <string name="status_signed">Signed</string>
+    <string name="status_no_transaction">No transaction</string>
+    <string name="status_confirming">Confirming</string>
+    <string name="status_confirmed">Confirmed</string>
+    <string name="status_reverted">Reverted</string>
+    <string name="view_on_explorer">View on Etherscan</string>
+</resources>

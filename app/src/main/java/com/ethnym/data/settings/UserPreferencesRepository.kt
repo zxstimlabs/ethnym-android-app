@@ -2,23 +2,25 @@ package com.ethnym.data.settings
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
+enum class ThemeMode { System, Light, Dark }
+
 data class UserPreferences(
-    val hideBalances: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.System,
 )
 
 interface UserPreferencesRepository {
     val userPreferences: Flow<UserPreferences>
 
-    suspend fun setHideBalances(hide: Boolean)
+    suspend fun setThemeMode(mode: ThemeMode)
 }
 
 /**
@@ -32,14 +34,16 @@ class DataStoreUserPreferencesRepository @Inject constructor(
     override val userPreferences: Flow<UserPreferences> = dataStore.data
         .catch { e -> if (e is IOException) emit(emptyPreferences()) else throw e }
         .map { prefs ->
-            UserPreferences(hideBalances = prefs[HIDE_BALANCES] ?: false)
+            UserPreferences(
+                themeMode = prefs[THEME_MODE]?.let { stored -> ThemeMode.entries.find { it.name == stored } } ?: ThemeMode.System,
+            )
         }
 
-    override suspend fun setHideBalances(hide: Boolean) {
-        dataStore.edit { it[HIDE_BALANCES] = hide }
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        dataStore.edit { it[THEME_MODE] = mode.name }
     }
 
     private companion object {
-        val HIDE_BALANCES = booleanPreferencesKey("hide_balances")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
     }
 }

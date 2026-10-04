@@ -1,0 +1,57 @@
+<resources>
+    <!-- Address book -->
+    <string name="addresses">Addresses</string>
+    <string name="search_contacts">Search by name, address, tag or note…</string>
+    <string name="no_contacts_yet">No contacts yet. Add one in the Create tab.</string>
+    <string name="no_contacts_match">No contacts match your search.</string>
+    <string name="chain_id_optional">Chain ID (optional)</string>
+    <string name="chain_id_hint">Leave blank for chain-agnostic</string>
+    <string name="tags">Tags</string>
+    <string name="tags_placeholder">defi, team</string>
+    <string name="note_optional">Note (optional)</string>
+
+    <!-- Activity -->
+    <string name="outgoing">Outgoing</string>
+    <string name="incoming">Incoming</string>
+    <string name="no_active_wallet">No active wallet selected.</string>
+    <string name="no_activity_yet">No activity yet.</string>
+
+    <!-- Backup -->
+    <string name="keystore">Keystore</string>
+    <string name="backup">Backup</string>
+    <string name="keystore_encrypt_hint">Convert any secret phrase to a keystore.</string>
+    <string name="keystore_decrypt_hint">Decrypt any keystore to its secret phrase.</string>
+    <string name="no_backup_keystore">No backup keystore</string>
+    <string name="save_keystore_hint">Copy or save this backup keystore somewhere secure.</string>
+    <string name="no_decrypted_phrase">No decrypted phrase</string>
+    <string name="local_device_backup">Local device backup</string>
+    <string name="local_backup_hint">Exports all wallets, contacts, settings and activity into an encrypted .json backup, encrypted with AES-GCM 256-bit and PBKDF2 (%1$d iterations).</string>
+    <string name="local_backup_password_warning">Keep your password safe. It cannot be recovered.</string>
+    <string name="activity_records">Activity records</string>
+    <string name="backup_password">Backup password</string>
+    <string name="download_backup">Download backup</string>
+    <string name="encrypting">Encrypting…</string>
+    <string name="cloud_sync">Cloud sync</string>
+    <string name="cloud_sync_description">Store your encrypted wallet backup in the cloud, with your data always encrypted on the device before it leaves.</string>
+
+    <!-- Settings -->
+    <string name="rpc_endpoint">RPC endpoint</string>
+    <string name="active">Active</string>
+    <string name="custom">custom</string>
+    <string name="default_label">default</string>
+    <string name="reset_to_default">Reset to default</string>
+    <string name="saved_rpcs">Saved RPCs</string>
+    <string name="no_custom_rpcs">No custom RPCs saved yet.</string>
+    <string name="currently_active">Currently active</string>
+    <string name="set_as_active">Set as active</string>
+    <string name="add_rpc">Add RPC</string>
+    <string name="rpc_name_optional">Name (optional, e.g. Alchemy)</string>
+    <string name="rpc_url">RPC URL</string>
+    <string name="offline_mode">Offline mode</string>
+    <string name="offline_mode_description">Disables all network fetching: balances, gas prices, ENS lookups. Use this to sign transactions without broadcasting them.</string>
+    <string name="offline_fetching_disabled">Offline: fetching disabled</string>
+    <string name="online">Online</string>
+    <string name="offline_notice">All balance and network queries are paused. You can still sign transactions in the Sign tab; turn offline mode off to broadcast.</string>
+    <string name="vpn_relay">VPN relay</string>
+    <string name="vpn_relay_description">Route RPC traffic through a built-in VPN relay to improve privacy and prevent IP-based tracking by node providers.</string>
+</resources>

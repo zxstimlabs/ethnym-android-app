@@ -1,0 +1,55 @@
+<resources>
+    <!-- Wallets tab -->
+    <string name="wallet">Wallet</string>
+    <string name="wallets">Wallets</string>
+    <string name="no_wallet_selected">No wallet selected</string>
+    <string name="no_wallets_found">No wallets found. Create a new wallet or import an existing wallet to get started.</string>
+    <string name="manage_wallets">Manage wallets</string>
+    <string name="balances">Balances</string>
+    <string name="select_wallet_for_balances">Select a wallet to see its balances.</string>
+    <plurals name="migration_notice">
+        <item quantity="one">%1$d wallet is on an older storage format (missing umVersion).</item>
+        <item quantity="other">%1$d wallets are on an older storage format (missing umVersion).</item>
+    </plurals>
+    <string name="migration_explainer">Migrate to the current format (%1$s). No keys are changed, only metadata is updated.</string>
+    <plurals name="migrate_wallets">
+        <item quantity="one">Migrate %1$d wallet</item>
+        <item quantity="other">Migrate %1$d wallets</item>
+    </plurals>
+
+    <!-- Create / import -->
+    <string name="create_wallet_hint">Enter a name and a strong password to create a new wallet.</string>
+    <string name="wallet_name">Wallet name</string>
+    <string name="secret_phrase">Secret phrase</string>
+    <string name="import_keystore_file">Import with keystore file</string>
+    <string name="choose_file">Choose file</string>
+    <string name="keystores_in_file">%1$s: %2$d wallet(s) ready to import</string>
+    <string name="import_keystore_contents">Import with keystore contents</string>
+    <string name="paste_keystore_placeholder">Paste your keystore file content here</string>
+    <string name="import_secret_phrase">Import with secret phrase</string>
+
+    <!-- Export -->
+    <string name="download_active_keystore">Download the backup keystore for the current wallet</string>
+    <string name="select_wallet_to_download">Select a wallet to download its backup keystore</string>
+    <string name="download_all_keystores">Download backup keystores for all wallets</string>
+    <string name="reveal_phrase_hint">Export and reveal the current wallet\'s secret phrase</string>
+    <string name="select_wallet_to_reveal">Select a wallet to export and reveal its secret phrase</string>
+    <string name="exported_phrase_placeholder">Your exported secret phrase</string>
+
+    <!-- Delete -->
+    <string name="delete_wallet_hint">Follow the steps below to delete %1$s.</string>
+    <string name="select_wallet_to_delete">Select a wallet to delete.</string>
+    <string name="delete_step_password">1. Enter your wallet password</string>
+    <string name="delete_step_confirm">2. Confirm to delete the wallet</string>
+
+    <!-- Balances -->
+    <string name="token">Token</string>
+    <string name="nft">NFT</string>
+    <string name="offline_balances_paused">Offline mode is on. Balances are paused.</string>
+    <string name="add_custom_token">Add custom token</string>
+    <string name="token_address_placeholder">Token address (0x…)</string>
+    <string name="decimals_count">%1$d decimals</string>
+    <string name="no_nfts_found">No NFTs found</string>
+    <string name="add_custom_nft">Add custom NFT collection</string>
+    <string name="collection_address_placeholder">Collection address (0x…)</string>
+</resources>
