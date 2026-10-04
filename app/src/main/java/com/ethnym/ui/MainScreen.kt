@@ -116,9 +116,8 @@ fun MainScreen(
                     NavigationBarItem(
                         selected = item == tab,
                         onClick = { tab = item },
-                        icon = { Icon(painterResource(item.icon), contentDescription = null) },
-                        label = { Text(stringResource(item.label), maxLines = 1) },
-                        alwaysShowLabel = false,
+                        // Icon only; the tab name stays as the content description for screen readers.
+                        icon = { Icon(painterResource(item.icon), contentDescription = stringResource(item.label)) },
                     )
                 }
             }
