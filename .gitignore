@@ -15,7 +15,7 @@ local.properties
 *.jks
 *.keystore
 keystore.properties
-play-service-account.json
+zxstimlabs-play-service-account.json
 
 # OS
 .DS_Store

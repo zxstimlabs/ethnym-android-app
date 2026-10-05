@@ -45,7 +45,7 @@ Open the folder in Android Studio to run from the IDE.
 ./gradlew publishReleaseBundle --release-name "0.2.0 – Send fixes"
 ```
 
-- Needs the Play service-account key at `play-service-account.json` (gitignored), or its JSON contents in `ANDROID_PUBLISHER_CREDENTIALS`.
+- Needs the Play service-account key at `zxstimlabs-play-service-account.json` (gitignored), or its JSON contents in `ANDROID_PUBLISHER_CREDENTIALS`.
 - `versionCode` is bumped automatically past the highest one on Play; bump `versionName` yourself.
 - Release notes come from `app/src/main/play/release-notes/en-US/default.txt` (max 500 characters). Edit it before each upload.
 

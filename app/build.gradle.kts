@@ -90,10 +90,10 @@ android {
 
 // Gradle Play Publisher: `./gradlew publishReleaseBundle` builds the release bundle and uploads it to
 // the internal testing track, with the release notes in src/main/play/release-notes.
-// It authenticates with the Play service-account key in play-service-account.json (gitignored), or,
-// without that file, with the key's JSON contents in the ANDROID_PUBLISHER_CREDENTIALS env variable.
+// It authenticates with the Play service-account key in zxstimlabs-play-service-account.json
+// (gitignored), or, without that file, with the key's JSON contents in ANDROID_PUBLISHER_CREDENTIALS.
 play {
-    val credentials = rootProject.file("play-service-account.json")
+    val credentials = rootProject.file("zxstimlabs-play-service-account.json")
     if (credentials.exists()) serviceAccountCredentials.set(credentials)
     track.set("internal")
     defaultToAppBundles.set(true)
