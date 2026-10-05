@@ -1,22 +1,70 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Ethereum diamond, kept inside the 66dp adaptive-icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,29L39,55L54,64Z" />
-    <path
-        android:fillAlpha="0.75"
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,29L69,55L54,64Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M39,58.5L54,79L54,67.5Z" />
-    <path
-        android:fillAlpha="0.75"
-        android:fillColor="#FFFFFF"
-        android:pathData="M69,58.5L54,79L54,67.5Z" />
+    android:viewportWidth="375"
+    android:viewportHeight="375">
+  <group android:scaleX="0.38"
+      android:scaleY="0.38"
+      android:translateX="116.25"
+      android:translateY="116.25">
+    <group>
+      <clip-path
+          android:pathData="M0,0h375v375h-375z"/>
+      <group>
+        <clip-path
+            android:pathData="M0,0L375,0L375,375L0,375ZM0,0"/>
+        <path
+            android:pathData="M-82.5,-82.5h540v540h-540z"
+            android:fillColor="#ffffff"/>
+      </group>
+    </group>
+    <group>
+      <clip-path
+          android:pathData="M33.16,204.09L187.5,204.09L187.5,236.25L33.16,236.25ZM33.16,204.09"/>
+      <group>
+        <clip-path
+            android:pathData="M33,204h155v33h-155z"/>
+        <group>
+          <clip-path
+              android:pathData="M33.16,204.09L187.5,204.09L187.5,236.25L33.16,236.25ZM33.16,204.09"/>
+          <path
+              android:pathData="M33.16,204.09L187.52,204.09L187.52,236.25L33.16,236.25ZM33.16,204.09"
+              android:fillColor="#000000"
+              android:fillType="nonZero"/>
+        </group>
+      </group>
+    </group>
+    <group>
+      <clip-path
+          android:pathData="M33.16,256.95L187.5,256.95L187.5,289.11L33.16,289.11ZM33.16,256.95"/>
+      <group>
+        <clip-path
+            android:pathData="M33,256h155v34h-155z"/>
+        <group>
+          <clip-path
+              android:pathData="M33.16,256.95L187.5,256.95L187.5,289.11L33.16,289.11ZM33.16,256.95"/>
+          <path
+              android:pathData="M33.16,256.95L187.52,256.95L187.52,289.11L33.16,289.11ZM33.16,256.95"
+              android:fillColor="#000000"
+              android:fillType="nonZero"/>
+        </group>
+      </group>
+    </group>
+    <group>
+      <clip-path
+          android:pathData="M33.16,309.68L187.5,309.68L187.5,341.84L33.16,341.84ZM33.16,309.68"/>
+      <group>
+        <clip-path
+            android:pathData="M33,309h155v33h-155z"/>
+        <group>
+          <clip-path
+              android:pathData="M33.16,309.68L187.5,309.68L187.5,341.84L33.16,341.84ZM33.16,309.68"/>
+          <path
+              android:pathData="M33.16,309.68L187.52,309.68L187.52,341.84L33.16,341.84ZM33.16,309.68"
+              android:fillColor="#000000"
+              android:fillType="nonZero"/>
+        </group>
+      </group>
+    </group>
+  </group>
 </vector>

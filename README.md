@@ -35,6 +35,20 @@ app/src/main/java/com/ethnym/
 
 Open the folder in Android Studio to run from the IDE.
 
+## Publish
+
+[Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) uploads release builds to Play Console:
+
+```sh
+./gradlew publishReleaseBundle                    # build + upload to the internal testing track
+./gradlew publishReleaseBundle --track alpha      # closed testing instead
+./gradlew publishReleaseBundle --release-name "0.2.0 – Send fixes"
+```
+
+- Needs the Play service-account key at `play-service-account.json` (gitignored), or its JSON contents in `ANDROID_PUBLISHER_CREDENTIALS`.
+- `versionCode` is bumped automatically past the highest one on Play; bump `versionName` yourself.
+- Release notes come from `app/src/main/play/release-notes/en-US/default.txt` (max 500 characters). Edit it before each upload.
+
 ## Security defaults
 
 - Cloud backup and device-to-device transfer are disabled (`allowBackup=false`, `data_extraction_rules.xml`).

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon layer for Android 13+. The system tints by alpha only, so the bars are cut out of
+     the tile (evenOdd) instead of being painted black as in ic_launcher_foreground. Same geometry
+     as ic_launcher_foreground; regenerate both together if the symbol changes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="375"
+    android:viewportHeight="375">
+    <group
+        android:scaleX="0.38"
+        android:scaleY="0.38"
+        android:translateX="116.25"
+        android:translateY="116.25">
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M0,0h375v375h-375z M33.16,204.09h154.34v32.16h-154.34z M33.16,256.95h154.34v32.16h-154.34z M33.16,309.68h154.34v32.16h-154.34z" />
+    </group>
+</vector>

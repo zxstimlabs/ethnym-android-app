@@ -1,3 +1,4 @@
+import com.github.triplet.gradle.androidpublisher.ResolutionStrategy
 import java.util.Properties
 
 plugins {
@@ -7,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.play.publisher)
 }
 
 // Release builds are signed with the Play upload key described in keystore.properties (gitignored).
@@ -35,8 +37,8 @@ android {
         applicationId = "com.ethnym"
         minSdk = 28
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -84,6 +86,22 @@ android {
             )
         }
     }
+}
+
+// Gradle Play Publisher: `./gradlew publishReleaseBundle` builds the release bundle and uploads it to
+// the internal testing track, with the release notes in src/main/play/release-notes.
+// It authenticates with the Play service-account key in play-service-account.json (gitignored), or,
+// without that file, with the key's JSON contents in the ANDROID_PUBLISHER_CREDENTIALS env variable.
+play {
+    val credentials = rootProject.file("play-service-account.json")
+    if (credentials.exists()) serviceAccountCredentials.set(credentials)
+    track.set("internal")
+    defaultToAppBundles.set(true)
+    // Play rejects a reused versionCode, so each upload gets one above the highest already on Play.
+    // AUTO asks Play for that number while building, so it is only on for publish runs: plain
+    // bundleRelease/assembleRelease builds stay offline and use the versionCode in defaultConfig.
+    val publishing = gradle.startParameter.taskNames.any { it.substringAfterLast(':').startsWith("publish") }
+    if (publishing) resolutionStrategy.set(ResolutionStrategy.AUTO)
 }
 
 dependencies {
