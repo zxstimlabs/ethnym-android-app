@@ -1,9 +1,8 @@
 Test build of ETHnym, a native Ethereum wallet.
-• Create or import wallets (secret phrase or keystore file)
-• See your ETH, token and NFT balances
-• Send ETH, ERC-20 tokens and NFTs, with ENS names and QR scanning
-• Address book for saved contacts
-• Activity list of your sent transactions
-• Encrypted local backups and keystore export
-• Light/dark theme and custom RPC in Settings
+New in 0.1.2:
+• Redesigned Wallets screen: wallet picker, Receive and Manage on top, balances below
+• Tap or long-press a balance to copy it or its contract address
+• Settings moved to the top-right corner, with Log out and a System/Light/Dark theme picker
+• Five tabs in the bottom bar, and the ETHnym logo in the header
+• Status bar icons stay visible in dark mode
 Please report anything that looks off, especially when sending.
