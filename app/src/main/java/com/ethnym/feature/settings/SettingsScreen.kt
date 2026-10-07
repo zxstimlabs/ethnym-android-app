@@ -12,17 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -39,7 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -56,9 +58,9 @@ import com.ethnym.data.settings.UserPreferencesRepository
 import com.ethnym.data.settings.validateRpcUrl
 import com.ethnym.data.wallet.WalletRepository
 import com.ethnym.ui.components.AddressText
-import com.ethnym.ui.components.ComingSoon
 import com.ethnym.ui.components.HintText
-import com.ethnym.ui.components.SectionHeader
+import com.ethnym.ui.components.SectionCard
+import com.ethnym.ui.components.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -170,135 +172,169 @@ private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Uni
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SectionHeader(stringResource(R.string.wallet))
-        val wallet = activeWallet
-        if (wallet != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(wallet.name, style = MaterialTheme.typography.titleSmall)
-                AddressText(wallet.address)
+        SectionCard(title = stringResource(R.string.wallet), info = stringResource(R.string.wallet_settings_info)) {
+            val wallet = activeWallet
+            if (wallet != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(wallet.name, style = MaterialTheme.typography.titleSmall)
+                    AddressText(wallet.address)
+                }
+            } else {
+                HintText(stringResource(R.string.no_wallet_selected))
             }
-        } else {
-            HintText(stringResource(R.string.no_wallet_selected))
+            OutlinedButton(
+                onClick = {
+                    viewModel.logOut()
+                    onLoggedOut()
+                },
+                enabled = wallet != null,
+            ) {
+                Icon(painterResource(R.drawable.ic_logout), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.log_out))
+            }
         }
-        OutlinedButton(
-            onClick = {
-                viewModel.logOut()
-                onLoggedOut()
-            },
-            enabled = wallet != null,
-        ) {
-            Icon(painterResource(R.drawable.ic_logout), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.log_out))
-        }
-        HintText(stringResource(R.string.log_out_hint))
 
-        SectionHeader(stringResource(R.string.rpc_endpoint), Modifier.padding(top = 8.dp))
-        Text(stringResource(R.string.active), style = MaterialTheme.typography.labelLarge)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                current.activeRpc?.let { it.name ?: stringResource(R.string.custom) } ?: stringResource(R.string.default_label),
-                style = MaterialTheme.typography.labelMedium,
+        SectionCard(title = stringResource(R.string.rpc_endpoint), info = stringResource(R.string.rpc_endpoint_info)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.active), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Tag(current.activeRpc?.let { it.name ?: stringResource(R.string.custom) } ?: stringResource(R.string.default_label))
+            }
+            HintText(current.activeRpc?.url ?: BuildConfig.MAINNET_RPC_URL)
+            if (current.activeRpc != null) {
+                OutlinedButton(onClick = { viewModel.select(null) }) { Text(stringResource(R.string.reset_to_default)) }
+            }
+        }
+
+        SectionCard(title = stringResource(R.string.saved_rpcs), info = stringResource(R.string.saved_rpcs_info)) {
+            if (current.rpcList.isEmpty()) {
+                HintText(stringResource(R.string.no_custom_rpcs))
+            } else {
+                Column {
+                    current.rpcList.forEachIndexed { index, entry ->
+                        if (index > 0) HorizontalDivider()
+                        RpcRow(
+                            entry = entry,
+                            active = current.activeRpc?.id == entry.id,
+                            onSelect = { viewModel.select(entry) },
+                            onDelete = { viewModel.delete(entry.id) },
+                        )
+                    }
+                }
+            }
+        }
+
+        SectionCard(title = stringResource(R.string.add_rpc), info = stringResource(R.string.add_rpc_info)) {
+            OutlinedTextField(
+                value = viewModel.newName,
+                onValueChange = { viewModel.newName = it },
+                label = { Text(stringResource(R.string.rpc_name_optional)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
             )
-            HintText(current.activeRpc?.url ?: BuildConfig.MAINNET_RPC_URL, Modifier.weight(1f))
-        }
-        if (current.activeRpc != null) {
-            OutlinedButton(onClick = { viewModel.select(null) }) { Text(stringResource(R.string.reset_to_default)) }
-        }
-
-        SectionHeader(stringResource(R.string.saved_rpcs), Modifier.padding(top = 8.dp))
-        if (current.rpcList.isEmpty()) HintText(stringResource(R.string.no_custom_rpcs))
-        current.rpcList.forEach { entry ->
-            val active = current.activeRpc?.id == entry.id
-            OutlinedCard(Modifier.fillMaxWidth()) {
-                ListItem(
-                    headlineContent = { Text(entry.name ?: entry.url, maxLines = 1) },
-                    supportingContent = entry.name?.let { { Text(entry.url, style = MaterialTheme.typography.bodySmall, maxLines = 1) } },
-                    trailingContent = {
-                        Row {
-                            IconButton(onClick = { viewModel.select(entry) }, enabled = !active) {
-                                Icon(
-                                    painterResource(R.drawable.ic_check),
-                                    stringResource(if (active) R.string.currently_active else R.string.set_as_active),
-                                )
-                            }
-                            IconButton(onClick = { viewModel.delete(entry.id) }) {
-                                Icon(painterResource(R.drawable.ic_delete), stringResource(R.string.delete))
-                            }
-                        }
-                    },
-                    overlineContent = if (active) ({ Text(stringResource(R.string.active)) }) else null,
-                )
+            OutlinedTextField(
+                value = viewModel.newUrl,
+                onValueChange = viewModel::onUrlChange,
+                label = { Text(stringResource(R.string.rpc_url)) },
+                placeholder = { Text("https://...") },
+                isError = viewModel.addError != null,
+                supportingText = viewModel.addError?.let { { Text(it) } },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Button(onClick = viewModel::addRpc) {
+                Icon(painterResource(R.drawable.ic_save), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.save))
             }
         }
 
-        SectionHeader(stringResource(R.string.add_rpc), Modifier.padding(top = 8.dp))
-        OutlinedTextField(
-            value = viewModel.newName,
-            onValueChange = { viewModel.newName = it },
-            label = { Text(stringResource(R.string.rpc_name_optional)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = viewModel.newUrl,
-            onValueChange = viewModel::onUrlChange,
-            label = { Text(stringResource(R.string.rpc_url)) },
-            placeholder = { Text("https://...") },
-            isError = viewModel.addError != null,
-            supportingText = viewModel.addError?.let { { Text(it) } },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(onClick = viewModel::addRpc) {
-            Icon(painterResource(R.drawable.ic_save), contentDescription = null)
-            Text(stringResource(R.string.save), Modifier.padding(start = 8.dp))
-        }
-
-        SectionHeader(stringResource(R.string.offline_mode), Modifier.padding(top = 8.dp))
-        HintText(stringResource(R.string.offline_mode_description))
-        ListItem(
-            headlineContent = {
-                Text(stringResource(if (current.offlineMode) R.string.offline_fetching_disabled else R.string.online))
-            },
-            trailingContent = { Switch(checked = current.offlineMode, onCheckedChange = viewModel::setOffline) },
-        )
-        if (current.offlineMode) {
-            OutlinedCard(Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(painterResource(R.drawable.ic_warning), contentDescription = null)
+        SectionCard(title = stringResource(R.string.offline_mode), info = stringResource(R.string.offline_mode_description)) {
+            // The whole row toggles, and reads as one switch to screen readers.
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .toggleable(value = current.offlineMode, role = Role.Switch, onValueChange = viewModel::setOffline),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(if (current.offlineMode) R.string.offline_fetching_disabled else R.string.online),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(checked = current.offlineMode, onCheckedChange = null)
+            }
+            if (current.offlineMode) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(painterResource(R.drawable.ic_warning), contentDescription = null, modifier = Modifier.size(20.dp))
                     Text(stringResource(R.string.offline_notice), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
 
-        SectionHeader(stringResource(R.string.vpn_relay), Modifier.padding(top = 8.dp))
-        ComingSoon(stringResource(R.string.vpn_relay_description))
+        SectionCard(title = stringResource(R.string.vpn_relay), info = stringResource(R.string.vpn_relay_description)) {
+            HintText(stringResource(R.string.coming_soon))
+        }
 
-        SectionHeader(stringResource(R.string.appearance), Modifier.padding(top = 8.dp))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            ThemeMode.entries.forEachIndexed { index, mode ->
-                SegmentedButton(
-                    selected = mode == themeMode,
-                    onClick = { viewModel.setThemeMode(mode) },
-                    shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
-                    icon = {},
-                    label = {
-                        Text(
-                            stringResource(
-                                when (mode) {
-                                    ThemeMode.System -> R.string.theme_system
-                                    ThemeMode.Light -> R.string.theme_light
-                                    ThemeMode.Dark -> R.string.theme_dark
-                                },
-                            ),
-                        )
-                    },
+        SectionCard(title = stringResource(R.string.appearance), info = stringResource(R.string.appearance_info)) {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                ThemeMode.entries.forEachIndexed { index, mode ->
+                    SegmentedButton(
+                        selected = mode == themeMode,
+                        onClick = { viewModel.setThemeMode(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
+                        icon = {},
+                        label = {
+                            Text(
+                                stringResource(
+                                    when (mode) {
+                                        ThemeMode.System -> R.string.theme_system
+                                        ThemeMode.Light -> R.string.theme_light
+                                        ThemeMode.Dark -> R.string.theme_dark
+                                    },
+                                ),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** A saved RPC: its name and URL, with buttons to make it active or delete it. */
+@Composable
+private fun RpcRow(entry: RpcEntry, active: Boolean, onSelect: () -> Unit, onDelete: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    entry.name ?: entry.url,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (active) Tag(stringResource(R.string.active))
+            }
+            if (entry.name != null) {
+                Text(
+                    entry.url,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
                 )
             }
+        }
+        IconButton(onClick = onSelect, enabled = !active) {
+            Icon(painterResource(R.drawable.ic_check), stringResource(if (active) R.string.currently_active else R.string.set_as_active))
+        }
+        IconButton(onClick = onDelete) {
+            Icon(painterResource(R.drawable.ic_delete), stringResource(R.string.delete))
         }
     }
 }

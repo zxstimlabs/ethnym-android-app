@@ -36,8 +36,12 @@
 
     <!-- Settings -->
     <string name="log_out">Log out</string>
-    <string name="log_out_hint">Logging out deselects the wallet. Its keystore stays on this device.</string>
+    <string name="wallet_settings_info">The wallet you\'re using. Logging out deselects it. Its keystore stays on this device, so you can select it again from the Wallets tab.</string>
+    <string name="rpc_endpoint_info">The node the wallet reads balances from and sends transactions through. A change takes effect on the next request.</string>
+    <string name="saved_rpcs_info">Endpoints you\'ve added. Tap the check to make one active, or the trash icon to remove it.</string>
+    <string name="add_rpc_info">Add your own JSON-RPC endpoint, such as your own node or a provider like Alchemy. The URL must start with http:// or https://.</string>
     <string name="appearance">Appearance</string>
+    <string name="appearance_info">Follow the device\'s light or dark setting, or always use one.</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
