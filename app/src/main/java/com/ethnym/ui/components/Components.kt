@@ -2,12 +2,18 @@ package com.ethnym.ui.components
 
 import android.content.ClipData
 import android.os.PersistableBundle
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
@@ -16,14 +22,17 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +46,9 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -52,6 +64,70 @@ fun SectionHeader(text: String, modifier: Modifier = Modifier) {
         Text(text = text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
         HorizontalDivider()
     }
+}
+
+/**
+ * A titled group of related content, like the iOS app's list sections: a [SectionIntro], then
+ * [content].
+ */
+@Composable
+fun SectionCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    info: String? = null,
+    accessory: @Composable RowScope.() -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    OutlinedCard(modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SectionIntro(title, info = info, accessory = accessory)
+            content()
+        }
+    }
+}
+
+/**
+ * A section's first row: its title, an (i) that explains what the section is for when there is
+ * [info], and any [accessory] on the right.
+ */
+@Composable
+fun SectionIntro(
+    title: String,
+    modifier: Modifier = Modifier,
+    info: String? = null,
+    accessory: @Composable RowScope.() -> Unit = {},
+) {
+    Row(modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.semantics { heading() },
+        )
+        if (info != null) {
+            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+                InfoIconButton(title = title, text = info)
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        accessory()
+    }
+}
+
+/** A small outlined label, such as "Offline". */
+@Composable
+fun Tag(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(5.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+    )
 }
 
 /** Short explanatory text above a form, like the web wallet's muted headings. */

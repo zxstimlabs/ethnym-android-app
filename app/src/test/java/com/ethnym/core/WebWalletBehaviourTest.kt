@@ -124,6 +124,16 @@ class WebWalletBehaviourTest {
     }
 
     @Test
+    fun units_formatCapsFractionDigitsLikeTheIosApp() {
+        assertEquals("1.234567", Units.format(BigInteger("1234567891234567891"), 18, maxFractionDigits = 6))
+        assertEquals("1", Units.format(BigInteger("1000000000000000000"), 18, maxFractionDigits = 6))
+        assertEquals("1", Units.format(BigInteger("1000000000000000001"), 18, maxFractionDigits = 6))
+        assertEquals("<0.000001", Units.format(BigInteger.ONE, 18, maxFractionDigits = 6))
+        assertEquals("0", Units.format(BigInteger.ZERO, 18, maxFractionDigits = 6))
+        assertEquals("12", Units.format(BigInteger.valueOf(12), 0, maxFractionDigits = 6))
+    }
+
+    @Test
     fun addresses_followViemRules() {
         assertTrue(Addresses.isValid(lower))
         assertTrue(Addresses.isValid(checksummed))

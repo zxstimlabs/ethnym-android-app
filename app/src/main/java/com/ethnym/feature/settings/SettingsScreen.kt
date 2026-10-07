@@ -3,13 +3,20 @@ package com.ethnym.feature.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -17,8 +24,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,15 +48,21 @@ import androidx.lifecycle.viewModelScope
 import com.ethnym.BuildConfig
 import com.ethnym.R
 import com.ethnym.data.model.RpcEntry
+import com.ethnym.data.model.WalletKeystore
 import com.ethnym.data.model.WalletSettings
 import com.ethnym.data.settings.SettingsRepository
+import com.ethnym.data.settings.ThemeMode
+import com.ethnym.data.settings.UserPreferencesRepository
 import com.ethnym.data.settings.validateRpcUrl
+import com.ethnym.data.wallet.WalletRepository
+import com.ethnym.ui.components.AddressText
 import com.ethnym.ui.components.ComingSoon
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.SectionHeader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,10 +70,19 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val walletRepository: WalletRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
 
     val settings: StateFlow<WalletSettings?> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val activeWallet: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val themeMode: StateFlow<ThemeMode> = userPreferencesRepository.userPreferences
+        .map { it.themeMode }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.System)
 
     var newName by mutableStateOf("")
     var newUrl by mutableStateOf("")
@@ -91,21 +118,84 @@ class SettingsViewModel @Inject constructor(
     fun setOffline(offline: Boolean) {
         viewModelScope.launch { settingsRepository.setOfflineMode(offline) }
     }
+
+    /** Deselects the wallet, as the web wallet's Log out does. Its keystore stays on the device. */
+    fun logOut() {
+        viewModelScope.launch { walletRepository.setActive(null) }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { userPreferencesRepository.setThemeMode(mode) }
+    }
 }
 
-/** Settings tab: RPC endpoint, offline mode and the upcoming VPN relay. */
+/**
+ * Settings, opened from the top bar: the active wallet and Log out, RPC endpoint, offline mode, the
+ * upcoming VPN relay and appearance.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTab(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsRoute(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.back))
+                    }
+                },
+            )
+        },
+    ) { padding ->
+        SettingsContent(
+            viewModel = viewModel,
+            onLoggedOut = onBack,
+            modifier = Modifier
+                .padding(padding)
+                .consumeWindowInsets(padding)
+                .imePadding(),
+        )
+    }
+}
+
+@Composable
+private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Unit, modifier: Modifier = Modifier) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val activeWallet by viewModel.activeWallet.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val current = settings ?: return
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SectionHeader(stringResource(R.string.rpc_endpoint))
+        SectionHeader(stringResource(R.string.wallet))
+        val wallet = activeWallet
+        if (wallet != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(wallet.name, style = MaterialTheme.typography.titleSmall)
+                AddressText(wallet.address)
+            }
+        } else {
+            HintText(stringResource(R.string.no_wallet_selected))
+        }
+        OutlinedButton(
+            onClick = {
+                viewModel.logOut()
+                onLoggedOut()
+            },
+            enabled = wallet != null,
+        ) {
+            Icon(painterResource(R.drawable.ic_logout), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.log_out))
+        }
+        HintText(stringResource(R.string.log_out_hint))
+
+        SectionHeader(stringResource(R.string.rpc_endpoint), Modifier.padding(top = 8.dp))
         Text(stringResource(R.string.active), style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -187,5 +277,28 @@ fun SettingsTab(viewModel: SettingsViewModel = hiltViewModel()) {
 
         SectionHeader(stringResource(R.string.vpn_relay), Modifier.padding(top = 8.dp))
         ComingSoon(stringResource(R.string.vpn_relay_description))
+
+        SectionHeader(stringResource(R.string.appearance), Modifier.padding(top = 8.dp))
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            ThemeMode.entries.forEachIndexed { index, mode ->
+                SegmentedButton(
+                    selected = mode == themeMode,
+                    onClick = { viewModel.setThemeMode(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
+                    icon = {},
+                    label = {
+                        Text(
+                            stringResource(
+                                when (mode) {
+                                    ThemeMode.System -> R.string.theme_system
+                                    ThemeMode.Light -> R.string.theme_light
+                                    ThemeMode.Dark -> R.string.theme_dark
+                                },
+                            ),
+                        )
+                    },
+                )
+            }
+        }
     }
 }

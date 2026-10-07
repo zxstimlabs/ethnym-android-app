@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import com.ethnym.data.settings.ThemeMode
 
 private val LightColorScheme = lightColorScheme(
@@ -75,6 +77,12 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainerHighest = Grey20,
 )
 
+/**
+ * Whether the app is drawn dark. Follows [ThemeMode], which can override the system setting, so
+ * `-night` resources can't stand in for it.
+ */
+val LocalDarkTheme = staticCompositionLocalOf { false }
+
 @Composable
 fun EthnymTheme(
     themeMode: ThemeMode = ThemeMode.System,
@@ -85,9 +93,11 @@ fun EthnymTheme(
         ThemeMode.Light -> false
         ThemeMode.Dark -> true
     }
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        typography = Typography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = Typography,
+            content = content,
+        )
+    }
 }

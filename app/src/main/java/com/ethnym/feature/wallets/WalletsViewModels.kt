@@ -12,11 +12,14 @@ import com.ethnym.data.AppJson
 import com.ethnym.data.files.DocumentRepository
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.data.model.needsMigration
+import com.ethnym.data.settings.SettingsRepository
 import com.ethnym.data.wallet.WalletRepository
 import com.ethnym.feature.common.userMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -31,6 +34,7 @@ sealed interface WalletsUiState {
     data class Ready(
         val wallets: List<WalletKeystore>,
         val active: WalletKeystore?,
+        val offline: Boolean,
     ) : WalletsUiState {
         val staleCount: Int get() = wallets.count { it.needsMigration() }
     }
@@ -39,10 +43,13 @@ sealed interface WalletsUiState {
 @HiltViewModel
 class WalletsViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<WalletsUiState> = walletRepository.vault
-        .map { vault -> WalletsUiState.Ready(vault.wallets, vault.wallets.find { it.id == vault.activeWalletId }) }
+    val uiState: StateFlow<WalletsUiState> = combine(
+        walletRepository.vault,
+        settingsRepository.settings.map { it.offlineMode }.distinctUntilChanged(),
+    ) { vault, offline -> WalletsUiState.Ready(vault.wallets, vault.wallets.find { it.id == vault.activeWalletId }, offline) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WalletsUiState.Loading)
 
     fun select(id: String?) {

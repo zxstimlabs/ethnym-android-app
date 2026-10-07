@@ -2,11 +2,22 @@
     <!-- Wallets tab -->
     <string name="wallet">Wallet</string>
     <string name="wallets">Wallets</string>
+    <string name="wallets_info">The wallet you\'re using. Switch wallets here, or create, import, export and delete them under Manage.</string>
     <string name="no_wallet_selected">No wallet selected</string>
-    <string name="no_wallets_found">No wallets found. Create a new wallet or import an existing wallet to get started.</string>
+    <string name="select_a_wallet">Select a wallet</string>
+    <string name="switch_wallet">switch wallet</string>
+    <string name="create_or_import_wallet">Create or import a wallet</string>
+    <string name="offline">Offline</string>
+    <string name="receive">Receive</string>
+    <string name="manage">Manage</string>
+    <string name="create_wallet">Create wallet</string>
+    <string name="import_wallet">Import wallet</string>
+    <string name="delete_wallet">Delete wallet</string>
     <string name="manage_wallets">Manage wallets</string>
     <string name="balances">Balances</string>
+    <string name="balances_info">Ether, then the tokens and NFTs this wallet holds. Add any that aren\'t listed by their contract address.</string>
     <string name="select_wallet_for_balances">Select a wallet to see its balances.</string>
+    <string name="create_wallet_for_balances">Create or import a wallet to see its balances.</string>
     <plurals name="migration_notice">
         <item quantity="one">%1$d wallet is on an older storage format (missing umVersion).</item>
         <item quantity="other">%1$d wallets are on an older storage format (missing umVersion).</item>
@@ -45,11 +56,20 @@
     <!-- Balances -->
     <string name="token">Token</string>
     <string name="nft">NFT</string>
+    <string name="tokens">Tokens</string>
+    <string name="nfts">NFTs</string>
     <string name="offline_balances_paused">Offline mode is on. Balances are paused.</string>
+    <string name="no_token_balances">No token balances.</string>
+    <string name="loading_token_balances">Loading token balances…</string>
+    <string name="loading_nfts">Loading NFTs…</string>
+    <string name="copy_contract_address">Copy contract address</string>
+    <string name="copy_balance">Copy balance</string>
+    <string name="copy_token_id">Copy token ID</string>
+    <string name="remove_collection">Remove collection</string>
     <string name="add_custom_token">Add custom token</string>
     <string name="token_address_placeholder">Token address (0x…)</string>
     <string name="decimals_count">%1$d decimals</string>
-    <string name="no_nfts_found">No NFTs found</string>
+    <string name="no_nfts_found">No NFTs found.</string>
     <string name="add_custom_nft">Add custom NFT collection</string>
     <string name="collection_address_placeholder">Collection address (0x…)</string>
 </resources>

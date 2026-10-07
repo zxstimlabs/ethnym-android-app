@@ -2,18 +2,18 @@ package com.ethnym.ui
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,89 +23,44 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
+import androidx.compose.ui.unit.dp
 import com.ethnym.R
-import com.ethnym.data.settings.ThemeMode
-import com.ethnym.data.settings.UserPreferencesRepository
-import com.ethnym.data.wallet.WalletRepository
 import com.ethnym.feature.activity.ActivityTab
 import com.ethnym.feature.addressbook.AddressBookTab
 import com.ethnym.feature.backup.BackupTab
 import com.ethnym.feature.send.SendTab
-import com.ethnym.feature.settings.SettingsTab
+import com.ethnym.feature.wallets.ManageWalletsTab
 import com.ethnym.feature.wallets.WalletsTab
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+import com.ethnym.ui.theme.LocalDarkTheme
 
-/** The web wallet's mobile tabs, in the same order. */
+/** The web wallet's mobile tabs, in the same order. The bar fits five, so Settings opens from the top bar. */
 enum class MainTab(@param:StringRes val label: Int, @param:DrawableRes val icon: Int) {
     Wallets(R.string.tab_wallets, R.drawable.ic_account_balance_wallet),
     AddressBook(R.string.tab_address_book, R.drawable.ic_contacts),
     Send(R.string.tab_send, R.drawable.ic_arrow_outward),
     Activity(R.string.tab_activity, R.drawable.ic_receipt_long),
     Backup(R.string.tab_backup, R.drawable.ic_save),
-    Settings(R.string.tab_settings, R.drawable.ic_settings),
 }
 
-@HiltViewModel
-class MainViewModel @Inject constructor(
-    private val walletRepository: WalletRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-) : ViewModel() {
-
-    data class UiState(val hasActiveWallet: Boolean = false, val themeMode: ThemeMode = ThemeMode.System)
-
-    val uiState: StateFlow<UiState> = combine(
-        walletRepository.activeWallet,
-        userPreferencesRepository.userPreferences,
-    ) { active, prefs -> UiState(hasActiveWallet = active != null, themeMode = prefs.themeMode) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
-
-    /** Deselects the wallet (the web wallet's log-out button). */
-    fun logOut() {
-        viewModelScope.launch { walletRepository.setActive(null) }
-    }
-
-    fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch { userPreferencesRepository.setThemeMode(mode) }
-    }
-}
-
+/**
+ * The tabs, under a top bar they all share: the logo on the left, Settings on the right, and nothing
+ * else, so nothing in it is easy to hit by accident. Log out and the theme live in Settings.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onManageWallets: () -> Unit,
-    viewModel: MainViewModel = hiltViewModel(),
+    onManageWallets: (ManageWalletsTab) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableStateOf(MainTab.Wallets) }
-    val dark = when (uiState.themeMode) {
-        ThemeMode.System -> isSystemInDarkTheme()
-        ThemeMode.Light -> false
-        ThemeMode.Dark -> true
-    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(tab.label)) },
+                title = { AppLogo() },
                 actions = {
-                    IconButton(onClick = { viewModel.setThemeMode(if (dark) ThemeMode.Light else ThemeMode.Dark) }) {
-                        Icon(
-                            painterResource(if (dark) R.drawable.ic_light_mode else R.drawable.ic_dark_mode),
-                            contentDescription = stringResource(R.string.toggle_theme),
-                        )
-                    }
-                    IconButton(onClick = viewModel::logOut, enabled = uiState.hasActiveWallet) {
-                        Icon(painterResource(R.drawable.ic_logout), contentDescription = stringResource(R.string.log_out))
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.settings))
                     }
                 },
             )
@@ -135,8 +90,20 @@ fun MainScreen(
                 MainTab.Send -> SendTab()
                 MainTab.Activity -> ActivityTab()
                 MainTab.Backup -> BackupTab()
-                MainTab.Settings -> SettingsTab()
             }
         }
     }
+}
+
+/**
+ * The ETHnym logo, drawn as is. The files swap on purpose: light mode shows the black tile and dark
+ * mode the white one, so the tile stands out from the background instead of blending into it.
+ */
+@Composable
+private fun AppLogo() {
+    Image(
+        painter = painterResource(if (LocalDarkTheme.current) R.drawable.ethnym_symbol_light else R.drawable.ethnym_symbol_dark),
+        contentDescription = stringResource(R.string.app_name),
+        modifier = Modifier.size(32.dp),
+    )
 }

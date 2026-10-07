@@ -2,6 +2,7 @@ package com.ethnym.feature.wallets
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,12 +44,22 @@ import com.ethnym.ui.components.FormButtons
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.PasswordField
 import com.ethnym.ui.components.SubTabs
+import kotlinx.serialization.Serializable
 
-/** Create, Export, Import and Delete, the web wallet's "Manage" tabs. */
+/** The web wallet's "Manage" tabs, in its order. */
+@Serializable
+enum class ManageWalletsTab(@param:StringRes val label: Int) {
+    Create(R.string.create),
+    Export(R.string.export),
+    Import(R.string.import_),
+    Delete(R.string.delete),
+}
+
+/** Create, Export, Import and Delete, opened on [initialTab]. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManageWalletsRoute(onBack: () -> Unit) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+fun ManageWalletsRoute(initialTab: ManageWalletsTab, onBack: () -> Unit) {
+    var tab by rememberSaveable { mutableStateOf(initialTab) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,14 +74,9 @@ fun ManageWalletsRoute(onBack: () -> Unit) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             SubTabs(
-                tabs = listOf(
-                    stringResource(R.string.create),
-                    stringResource(R.string.export),
-                    stringResource(R.string.import_),
-                    stringResource(R.string.delete),
-                ),
-                selectedIndex = tab,
-                onSelect = { tab = it },
+                tabs = ManageWalletsTab.entries.map { stringResource(it.label) },
+                selectedIndex = tab.ordinal,
+                onSelect = { tab = ManageWalletsTab.entries[it] },
             )
             Column(
                 Modifier
@@ -80,10 +86,10 @@ fun ManageWalletsRoute(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 when (tab) {
-                    0 -> CreateWalletForm()
-                    1 -> ExportWalletForm()
-                    2 -> ImportWalletForm()
-                    else -> DeleteWalletForm()
+                    ManageWalletsTab.Create -> CreateWalletForm()
+                    ManageWalletsTab.Export -> ExportWalletForm()
+                    ManageWalletsTab.Import -> ImportWalletForm()
+                    ManageWalletsTab.Delete -> DeleteWalletForm()
                 }
             }
         }

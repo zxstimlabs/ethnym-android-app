@@ -35,6 +35,12 @@
     <string name="cloud_sync_description">Store your encrypted wallet backup in the cloud, with your data always encrypted on the device before it leaves.</string>
 
     <!-- Settings -->
+    <string name="log_out">Log out</string>
+    <string name="log_out_hint">Logging out deselects the wallet. Its keystore stays on this device.</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
     <string name="rpc_endpoint">RPC endpoint</string>
     <string name="active">Active</string>
     <string name="custom">custom</string>

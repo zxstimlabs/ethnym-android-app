@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ETHnym symbol, dark: a black tile with white bars. From ethnym-symbol-dark.svg in the iOS app. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="375"
+    android:viewportHeight="375">
+    <path
+        android:fillColor="#000000"
+        android:pathData="M0,0H375V375H0Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M33.164062,204.089844H187.5V236.246094H33.164062Z M33.164062,256.949219H187.5V289.105469H33.164062Z M33.164062,309.683594H187.5V341.835938H33.164062Z" />
+</vector>

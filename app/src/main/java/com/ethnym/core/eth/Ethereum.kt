@@ -55,6 +55,19 @@ object Units {
     fun format(value: BigInteger, decimals: Int): String =
         BigDecimal(value, decimals).stripTrailingZeros().toPlainString()
 
+    /** [format], cut (not rounded) to [maxFractionDigits]. Dust shows as "<0.000001", never as "0". */
+    fun format(value: BigInteger, decimals: Int, maxFractionDigits: Int): String {
+        val full = format(value, decimals)
+        val dot = full.indexOf('.')
+        if (dot < 0) return full
+        val integer = full.substring(0, dot)
+        val fraction = full.substring(dot + 1).take(maxFractionDigits).trimEnd('0')
+        if (fraction.isEmpty()) {
+            return if (integer == "0" && value.signum() > 0) "<0." + "0".repeat(maxOf(maxFractionDigits - 1, 0)) + "1" else integer
+        }
+        return "$integer.$fraction"
+    }
+
     fun parseEther(value: String) = parse(value, 18)
 
     fun formatEther(value: BigInteger) = format(value, 18)

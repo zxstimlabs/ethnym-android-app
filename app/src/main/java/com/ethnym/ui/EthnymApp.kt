@@ -9,9 +9,11 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.ethnym.feature.settings.SettingsRoute
 import com.ethnym.feature.wallets.ManageWalletsRoute
 import com.ethnym.ui.navigation.Main
 import com.ethnym.ui.navigation.ManageWallets
+import com.ethnym.ui.navigation.Settings
 
 @Composable
 fun EthnymApp() {
@@ -40,10 +42,16 @@ fun EthnymApp() {
         },
         entryProvider = entryProvider {
             entry<Main> {
-                MainScreen(onManageWallets = { backStack.add(ManageWallets) })
+                MainScreen(
+                    onManageWallets = { tab -> backStack.add(ManageWallets(tab)) },
+                    onOpenSettings = { backStack.add(Settings) },
+                )
             }
-            entry<ManageWallets> {
-                ManageWalletsRoute(onBack = { backStack.removeLastOrNull() })
+            entry<ManageWallets> { key ->
+                ManageWalletsRoute(initialTab = key.tab, onBack = { backStack.removeLastOrNull() })
+            }
+            entry<Settings> {
+                SettingsRoute(onBack = { backStack.removeLastOrNull() })
             }
         },
     )
