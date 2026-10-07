@@ -13,7 +13,6 @@
     <string name="create_wallet">Create wallet</string>
     <string name="import_wallet">Import wallet</string>
     <string name="delete_wallet">Delete wallet</string>
-    <string name="manage_wallets">Manage wallets</string>
     <string name="balances">Balances</string>
     <string name="balances_info">Ether, then the tokens and NFTs this wallet holds. Add any that aren\'t listed by their contract address.</string>
     <string name="select_wallet_for_balances">Select a wallet to see its balances.</string>

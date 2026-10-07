@@ -2,12 +2,16 @@ package com.ethnym.feature.wallets
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +23,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,12 +33,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -43,54 +52,112 @@ import com.ethnym.ui.components.CopyButton
 import com.ethnym.ui.components.FormButtons
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.PasswordField
-import com.ethnym.ui.components.SubTabs
-import kotlinx.serialization.Serializable
+import com.ethnym.ui.navigation.LocalDismissSheet
 
-/** The web wallet's "Manage" tabs, in its order. */
-@Serializable
-enum class ManageWalletsTab(@param:StringRes val label: Int) {
-    Create(R.string.create),
-    Export(R.string.export),
-    Import(R.string.import_),
-    Delete(R.string.delete),
+/** What the Manage sheet offers, in the iOS app's order. Each opens its own screen. */
+enum class WalletAction(@param:StringRes val label: Int, @param:DrawableRes val icon: Int) {
+    Create(R.string.create_wallet, R.drawable.ic_add),
+    Import(R.string.import_wallet, R.drawable.ic_download),
+    Export(R.string.export, R.drawable.ic_upload),
+    Delete(R.string.delete_wallet, R.drawable.ic_delete),
 }
 
-/** Create, Export, Import and Delete, opened on [initialTab]. */
+/**
+ * Create, import, export and delete, as under the web wallet's Manage. Shown in a sheet over the
+ * Wallets tab: choosing one slides the sheet away and opens that action's screen.
+ */
+@Composable
+fun ManageSheet(
+    onChoose: (WalletAction) -> Unit,
+    onClose: () -> Unit,
+    viewModel: WalletsViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val canDelete = (uiState as? WalletsUiState.Ready)?.active != null
+    val dismissSheet = LocalDismissSheet.current
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.manage),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() },
+        )
+        IconButton(onClick = { dismissSheet(onClose) }) {
+            Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.close))
+        }
+    }
+    Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 16.dp)) {
+        WalletAction.entries.forEachIndexed { index, action ->
+            if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+            val delete = action == WalletAction.Delete
+            ManageRow(action, enabled = !delete || canDelete, destructive = delete) {
+                dismissSheet { onChoose(action) }
+            }
+        }
+    }
+}
+
+/** A full-width row: red for destructive actions, dimmed while disabled. */
+@Composable
+private fun ManageRow(action: WalletAction, enabled: Boolean, destructive: Boolean, onClick: () -> Unit) {
+    val color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    ListItem(
+        headlineContent = { Text(stringResource(action.label)) },
+        leadingContent = { Icon(painterResource(action.icon), contentDescription = null) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = color, leadingIconColor = color),
+        modifier = Modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .alpha(if (enabled) 1f else 0.38f),
+    )
+}
+
+/**
+ * One wallet action on its own screen. Back returns to where it was opened from, the Manage sheet
+ * or the Wallets tab; X returns to the Wallets tab.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManageWalletsRoute(initialTab: ManageWalletsTab, onBack: () -> Unit) {
-    var tab by rememberSaveable { mutableStateOf(initialTab) }
+fun WalletActionScreen(action: WalletAction, onBack: () -> Unit, onClose: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.manage_wallets)) },
+                title = { Text(stringResource(action.label)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.back))
                     }
                 },
+                actions = {
+                    IconButton(onClick = onClose) {
+                        Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.close))
+                    }
+                },
             )
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            SubTabs(
-                tabs = ManageWalletsTab.entries.map { stringResource(it.label) },
-                selectedIndex = tab.ordinal,
-                onSelect = { tab = ManageWalletsTab.entries[it] },
-            )
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                when (tab) {
-                    ManageWalletsTab.Create -> CreateWalletForm()
-                    ManageWalletsTab.Export -> ExportWalletForm()
-                    ManageWalletsTab.Import -> ImportWalletForm()
-                    ManageWalletsTab.Delete -> DeleteWalletForm()
-                }
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumeWindowInsets(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            when (action) {
+                WalletAction.Create -> CreateWalletForm()
+                WalletAction.Import -> ImportWalletForm()
+                WalletAction.Export -> ExportWalletForm()
+                WalletAction.Delete -> DeleteWalletForm()
             }
         }
     }

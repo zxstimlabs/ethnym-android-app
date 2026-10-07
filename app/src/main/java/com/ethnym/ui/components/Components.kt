@@ -18,6 +18,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -67,8 +69,8 @@ fun SectionHeader(text: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * A titled group of related content, like the iOS app's list sections: a [SectionIntro], then
- * [content].
+ * A titled group of related content on a solid sheet a shade off the background, like the iOS
+ * app's list sections: a [SectionIntro], then [content].
  */
 @Composable
 fun SectionCard(
@@ -78,16 +80,36 @@ fun SectionCard(
     accessory: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    OutlinedCard(modifier.fillMaxWidth()) {
-        Column(
-            Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    val colors = MaterialTheme.colorScheme
+    Card(modifier.fillMaxWidth(), colors = sheetColors()) {
+        // On the sheet's shade, tonal buttons, selected segments and menus would blend in, so they
+        // move one step further from the background. The components keep their default styling.
+        MaterialTheme(
+            colorScheme = colors.copy(
+                secondaryContainer = colors.surfaceContainerHighest,
+                surfaceContainer = colors.surfaceContainerHigh,
+            ),
         ) {
-            SectionIntro(title, info = info, accessory = accessory)
-            content()
+            Column(
+                Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                SectionIntro(title, info = info, accessory = accessory)
+                content()
+            }
         }
     }
 }
+
+/**
+ * A sheet a shade off the background. The text color is set because the light palette's
+ * surfaceVariant is the same grey, which would otherwise give muted text.
+ */
+@Composable
+fun sheetColors(): CardColors = CardDefaults.cardColors(
+    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    contentColor = MaterialTheme.colorScheme.onSurface,
+)
 
 /**
  * A section's first row: its title, an (i) that explains what the section is for when there is

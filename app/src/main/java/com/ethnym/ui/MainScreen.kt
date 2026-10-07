@@ -29,7 +29,7 @@ import com.ethnym.feature.activity.ActivityTab
 import com.ethnym.feature.addressbook.AddressBookTab
 import com.ethnym.feature.backup.BackupTab
 import com.ethnym.feature.send.SendTab
-import com.ethnym.feature.wallets.ManageWalletsTab
+import com.ethnym.feature.wallets.WalletAction
 import com.ethnym.feature.wallets.WalletsTab
 import com.ethnym.ui.theme.LocalDarkTheme
 
@@ -49,7 +49,8 @@ enum class MainTab(@param:StringRes val label: Int, @param:DrawableRes val icon:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onManageWallets: (ManageWalletsTab) -> Unit,
+    onManage: () -> Unit,
+    onWalletAction: (WalletAction) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Wallets) }
@@ -85,7 +86,7 @@ fun MainScreen(
                 .consumeWindowInsets(innerPadding),
         ) {
             when (tab) {
-                MainTab.Wallets -> WalletsTab(onManageWallets = onManageWallets)
+                MainTab.Wallets -> WalletsTab(onManage = onManage, onWalletAction = onWalletAction)
                 MainTab.AddressBook -> AddressBookTab()
                 MainTab.Send -> SendTab()
                 MainTab.Activity -> ActivityTab()

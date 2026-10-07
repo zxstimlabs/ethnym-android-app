@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -25,9 +26,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,11 +55,13 @@ import com.ethnym.ui.components.CopyIconButton
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.SectionCard
 import com.ethnym.ui.components.Tag
+import com.ethnym.ui.components.sheetColors
 
 /** Wallets tab: the active wallet and its address, then its balances. */
 @Composable
 fun WalletsTab(
-    onManageWallets: (ManageWalletsTab) -> Unit,
+    onManage: () -> Unit,
+    onWalletAction: (WalletAction) -> Unit,
     viewModel: WalletsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -70,7 +71,8 @@ fun WalletsTab(
             state = state,
             onSelect = viewModel::select,
             onMigrate = viewModel::migrate,
-            onManageWallets = onManageWallets,
+            onManage = onManage,
+            onWalletAction = onWalletAction,
         )
     }
 }
@@ -80,7 +82,8 @@ private fun WalletsContent(
     state: WalletsUiState.Ready,
     onSelect: (String?) -> Unit,
     onMigrate: () -> Unit,
-    onManageWallets: (ManageWalletsTab) -> Unit,
+    onManage: () -> Unit,
+    onWalletAction: (WalletAction) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -89,7 +92,7 @@ private fun WalletsContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        WalletSection(state = state, onSelect = onSelect, onManageWallets = onManageWallets)
+        WalletSection(state = state, onSelect = onSelect, onManage = onManage, onWalletAction = onWalletAction)
         if (state.staleCount > 0) MigrationNotice(count = state.staleCount, onMigrate = onMigrate)
         BalancesSection(hasWallets = state.wallets.isNotEmpty(), hasActiveWallet = state.active != null)
     }
@@ -104,7 +107,8 @@ private fun WalletsContent(
 private fun WalletSection(
     state: WalletsUiState.Ready,
     onSelect: (String?) -> Unit,
-    onManageWallets: (ManageWalletsTab) -> Unit,
+    onManage: () -> Unit,
+    onWalletAction: (WalletAction) -> Unit,
 ) {
     SectionCard(
         title = stringResource(R.string.wallets),
@@ -135,10 +139,10 @@ private fun WalletSection(
                 .weight(1f)
                 .heightIn(min = 48.dp)
             if (state.wallets.isEmpty()) {
-                Button(onClick = { onManageWallets(ManageWalletsTab.Create) }, modifier = buttonModifier) {
+                Button(onClick = { onWalletAction(WalletAction.Create) }, modifier = buttonModifier) {
                     ActionLabel(stringResource(R.string.create), R.drawable.ic_add)
                 }
-                FilledTonalButton(onClick = { onManageWallets(ManageWalletsTab.Import) }, modifier = buttonModifier) {
+                FilledTonalButton(onClick = { onWalletAction(WalletAction.Import) }, modifier = buttonModifier) {
                     ActionLabel(stringResource(R.string.import_), R.drawable.ic_download)
                 }
             } else {
@@ -147,7 +151,9 @@ private fun WalletSection(
                 Button(onClick = { showQr = true }, enabled = active != null, modifier = buttonModifier) {
                     ActionLabel(stringResource(R.string.receive), R.drawable.ic_qr_code)
                 }
-                ManageButton(canDelete = active != null, onManageWallets = onManageWallets, modifier = buttonModifier)
+                FilledTonalButton(onClick = onManage, modifier = buttonModifier) {
+                    ActionLabel(stringResource(R.string.manage), R.drawable.ic_more_horiz)
+                }
                 if (showQr && active != null) AddressQrDialog(address = active.address, onDismiss = { showQr = false })
             }
         }
@@ -159,48 +165,6 @@ private fun RowScope.ActionLabel(text: String, @DrawableRes icon: Int) {
     Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
     Spacer(Modifier.width(ButtonDefaults.IconSpacing))
     Text(text, maxLines = 1)
-}
-
-/** Create, import, export and delete, in a menu, as under the web wallet's Manage. Each opens that tab. */
-@Composable
-private fun ManageButton(
-    canDelete: Boolean,
-    onManageWallets: (ManageWalletsTab) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var open by remember { mutableStateOf(false) }
-
-    @Composable
-    fun Item(text: Int, icon: Int, tab: ManageWalletsTab, enabled: Boolean = true, destructive: Boolean = false) {
-        DropdownMenuItem(
-            text = { Text(stringResource(text)) },
-            leadingIcon = { Icon(painterResource(icon), contentDescription = null) },
-            enabled = enabled,
-            colors = if (destructive) {
-                MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error, leadingIconColor = MaterialTheme.colorScheme.error)
-            } else {
-                MenuDefaults.itemColors()
-            },
-            onClick = {
-                open = false
-                onManageWallets(tab)
-            },
-        )
-    }
-
-    // Passes the row's width and minimum height on to the button, to match Receive beside it.
-    Box(modifier, propagateMinConstraints = true) {
-        FilledTonalButton(onClick = { open = true }) {
-            ActionLabel(stringResource(R.string.manage), R.drawable.ic_more_horiz)
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            Item(R.string.create_wallet, R.drawable.ic_add, ManageWalletsTab.Create)
-            Item(R.string.import_wallet, R.drawable.ic_download, ManageWalletsTab.Import)
-            Item(R.string.export, R.drawable.ic_upload, ManageWalletsTab.Export)
-            HorizontalDivider()
-            Item(R.string.delete_wallet, R.drawable.ic_delete, ManageWalletsTab.Delete, enabled = canDelete, destructive = true)
-        }
-    }
 }
 
 /** The active wallet's name; tapping it lists the wallets to switch to. */
@@ -277,8 +241,8 @@ private fun WalletPicker(
 
 @Composable
 private fun MigrationNotice(count: Int, onMigrate: () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(Modifier.fillMaxWidth(), colors = sheetColors()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(painterResource(R.drawable.ic_warning), contentDescription = null)
                 Text(pluralStringResource(R.plurals.migration_notice, count, count), style = MaterialTheme.typography.bodyMedium)

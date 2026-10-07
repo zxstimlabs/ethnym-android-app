@@ -1,7 +1,6 @@
 package com.ethnym.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
-import com.ethnym.feature.wallets.ManageWalletsTab
 import kotlinx.serialization.Serializable
 
 // Navigation 3 destinations. Keys are @Serializable so the back stack survives process death.
@@ -10,9 +9,24 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object Main : NavKey
 
-/** Create, export, import and delete wallets, opened on [tab]. */
+/** Create, import, export and delete, in a sheet over the Wallets tab. */
 @Serializable
-data class ManageWallets(val tab: ManageWalletsTab = ManageWalletsTab.Create) : NavKey
+data object Manage : NavKey
+
+// Each wallet action has its own screen, opened from the Manage sheet or, before the first wallet
+// exists, straight from the Wallets tab.
+
+@Serializable
+data object CreateWallet : NavKey
+
+@Serializable
+data object ImportWallet : NavKey
+
+@Serializable
+data object ExportWallet : NavKey
+
+@Serializable
+data object DeleteWallet : NavKey
 
 /** RPC endpoint, offline mode, appearance and log out. Opens from the top bar. */
 @Serializable
