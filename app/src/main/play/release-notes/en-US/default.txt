@@ -1,6 +1,5 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.3:
-• Wallets and Balances sit on solid sheets instead of outlined boxes
-• Manage opens a sheet from the bottom with Create, Import, Export and Delete
-• Each of those has its own screen: back returns to the sheet, X to your wallets
+New in 0.1.4:
+• Settings sections sit on solid sheets with an info button, like the Wallets tab
+• Tap anywhere on the Offline mode row to switch it
 Please report anything that looks off, especially when sending.
