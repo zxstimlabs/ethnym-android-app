@@ -1,8 +1,6 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.2:
-• Redesigned Wallets screen: wallet picker, Receive and Manage on top, balances below
-• Tap or long-press a balance to copy it or its contract address
-• Settings moved to the top-right corner, with Log out and a System/Light/Dark theme picker
-• Five tabs in the bottom bar, and the ETHnym logo in the header
-• Status bar icons stay visible in dark mode
+New in 0.1.3:
+• Wallets and Balances sit on solid sheets instead of outlined boxes
+• Manage opens a sheet from the bottom with Create, Import, Export and Delete
+• Each of those has its own screen: back returns to the sheet, X to your wallets
 Please report anything that looks off, especially when sending.
