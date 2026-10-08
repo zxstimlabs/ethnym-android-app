@@ -1,5 +1,7 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.4:
-• Settings sections sit on solid sheets with an info button, like the Wallets tab
-• Tap anywhere on the Offline mode row to switch it
+New in 0.1.5:
+• Address book is one card with search and +; Add contact opens in a sheet
+• Tap a contact to copy, view on Etherscan or delete; Edit shows delete buttons
+• Backup lists its tools in one card, each opening its own screen
+• Activity switches between Outgoing and Incoming with pill tabs
 Please report anything that looks off, especially when sending.
