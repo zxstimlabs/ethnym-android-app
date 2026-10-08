@@ -1,5 +1,6 @@
 package com.ethnym.feature.activity
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -33,7 +37,7 @@ import com.ethnym.data.wallet.WalletRepository
 import com.ethnym.ui.components.ComingSoon
 import com.ethnym.ui.components.DetailRow
 import com.ethnym.ui.components.HintText
-import com.ethnym.ui.components.SectionHeader
+import com.ethnym.ui.components.PillTabs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -68,29 +72,46 @@ class ActivityViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ActivityUiState.Loading)
 }
 
-/** Activity tab: transactions sent from the active wallet, recorded locally on confirmation. */
+private enum class Direction(@param:StringRes val label: Int) {
+    Outgoing(R.string.outgoing),
+    Incoming(R.string.incoming),
+}
+
+/**
+ * Activity tab: transactions sent from the active wallet, recorded locally on confirmation. Pill
+ * tabs switch between outgoing and incoming, as in Balances.
+ */
 @Composable
 fun ActivityTab(viewModel: ActivityViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var direction by rememberSaveable { mutableStateOf(Direction.Outgoing) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item { SectionHeader(stringResource(R.string.outgoing)) }
-        when (val state = uiState) {
-            ActivityUiState.Loading -> item { HintText(stringResource(R.string.loading)) }
-            ActivityUiState.NoWallet -> item { HintText(stringResource(R.string.no_active_wallet)) }
-            is ActivityUiState.Ready -> {
-                if (state.records.isEmpty()) item { HintText(stringResource(R.string.no_activity_yet)) }
-                items(state.records, key = { it.id ?: it.txHash }) { record ->
-                    ActivityRow(record)
-                    HorizontalDivider()
+        item {
+            PillTabs(
+                tabs = Direction.entries.map { stringResource(it.label) },
+                selectedIndex = direction.ordinal,
+                onSelect = { direction = Direction.entries[it] },
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
+        when (direction) {
+            Direction.Outgoing -> when (val state = uiState) {
+                ActivityUiState.Loading -> item { HintText(stringResource(R.string.loading)) }
+                ActivityUiState.NoWallet -> item { HintText(stringResource(R.string.no_active_wallet)) }
+                is ActivityUiState.Ready -> {
+                    if (state.records.isEmpty()) item { HintText(stringResource(R.string.no_activity_yet)) }
+                    items(state.records, key = { it.id ?: it.txHash }) { record ->
+                        ActivityRow(record)
+                        HorizontalDivider()
+                    }
                 }
             }
+            Direction.Incoming -> item { ComingSoon(stringResource(R.string.incoming_coming_soon)) }
         }
-        item { SectionHeader(stringResource(R.string.incoming), Modifier.padding(top = 16.dp)) }
-        item { ComingSoon() }
     }
 }
 

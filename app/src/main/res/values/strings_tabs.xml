@@ -1,24 +1,35 @@
 <resources>
     <!-- Address book -->
-    <string name="addresses">Addresses</string>
-    <string name="search_contacts">Search by name, address, tag or note…</string>
-    <string name="no_contacts_yet">No contacts yet. Add one in the Create tab.</string>
-    <string name="no_contacts_match">No contacts match your search.</string>
+    <string name="address_book_info">Addresses you send to often. Every recipient field can pick from them. Search matches names, addresses, tags and notes.</string>
+    <string name="search_contacts">Search address book</string>
+    <string name="clear_search">Clear search</string>
+    <string name="add_contact">Add contact</string>
+    <string name="no_contacts_yet">No contacts yet. Tap + to save one.</string>
+    <string name="no_contacts_match">No contacts match “%1$s”.</string>
+    <string name="copy_address">Copy address</string>
+    <string name="delete_contact">Delete %1$s</string>
+    <string name="contact">Contact</string>
+    <string name="details">Details</string>
     <string name="chain_id_optional">Chain ID (optional)</string>
     <string name="chain_id_hint">Leave blank for chain-agnostic</string>
-    <string name="tags">Tags</string>
+    <string name="tags">Tags (comma-separated)</string>
     <string name="tags_placeholder">defi, team</string>
     <string name="note_optional">Note (optional)</string>
 
     <!-- Activity -->
     <string name="outgoing">Outgoing</string>
     <string name="incoming">Incoming</string>
+    <string name="incoming_coming_soon">Incoming transfers will appear here.</string>
     <string name="no_active_wallet">No active wallet selected.</string>
     <string name="no_activity_yet">No activity yet.</string>
 
     <!-- Backup -->
     <string name="keystore">Keystore</string>
     <string name="backup">Backup</string>
+    <string name="backup_info">Ways to keep a copy of your wallets. Everything is encrypted with a password you choose before it\'s saved.</string>
+    <string name="keystore_detail">Encrypt any secret phrase to a keystore, or decrypt a keystore back to its phrase.</string>
+    <string name="local_backup_detail">Export wallets, contacts, settings and activity as one encrypted file.</string>
+    <string name="restore_coming_soon">Restoring from a backup file isn\'t available yet.</string>
     <string name="keystore_encrypt_hint">Convert any secret phrase to a keystore.</string>
     <string name="keystore_decrypt_hint">Decrypt any keystore to its secret phrase.</string>
     <string name="no_backup_keystore">No backup keystore</string>

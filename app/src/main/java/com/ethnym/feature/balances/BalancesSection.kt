@@ -1,7 +1,5 @@
 package com.ethnym.feature.balances
 
-import android.os.Build
-import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -39,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -55,7 +52,7 @@ import com.ethnym.ui.components.BusyIndicator
 import com.ethnym.ui.components.ErrorText
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.SectionCard
-import com.ethnym.ui.components.rememberCopyAction
+import com.ethnym.ui.components.rememberCopyWithFeedback
 import java.math.BigInteger
 
 /** Amounts in the list stop at this many decimals; Copy balance copies them in full. */
@@ -379,19 +376,6 @@ private fun AddCustomButton(text: String, onClick: () -> Unit) {
             modifier = Modifier.size(ButtonDefaults.IconSize),
         )
         Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-/** Copies, with a toast before Android 13, which doesn't confirm copies itself. */
-@Composable
-private fun rememberCopyWithFeedback(): (String) -> Unit {
-    val context = LocalContext.current
-    val (_, copy) = rememberCopyAction()
-    return { text ->
-        copy(text)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
-        }
     }
 }
 

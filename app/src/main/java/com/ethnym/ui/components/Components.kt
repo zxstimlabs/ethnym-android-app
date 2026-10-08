@@ -1,7 +1,9 @@
 package com.ethnym.ui.components
 
 import android.content.ClipData
+import android.os.Build
 import android.os.PersistableBundle
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -30,6 +31,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -59,14 +64,6 @@ import androidx.compose.ui.unit.dp
 import com.ethnym.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-@Composable
-fun SectionHeader(text: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
-        HorizontalDivider()
-    }
-}
 
 /**
  * A titled group of related content on a solid sheet a shade off the background, like the iOS
@@ -196,6 +193,27 @@ fun SubTabs(
     }
 }
 
+/** Pill tabs for switching between views of one list, as in Balances (iOS's segmented picker). */
+@Composable
+fun PillTabs(
+    tabs: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SingleChoiceSegmentedButtonRow(modifier.fillMaxWidth()) {
+        tabs.forEachIndexed { index, title ->
+            SegmentedButton(
+                selected = index == selectedIndex,
+                onClick = { onSelect(index) },
+                shape = SegmentedButtonDefaults.itemShape(index, tabs.size),
+                icon = {},
+                label = { Text(title, maxLines = 1) },
+            )
+        }
+    }
+}
+
 @Composable
 fun BusyIndicator(modifier: Modifier = Modifier) {
     CircularProgressIndicator(modifier = modifier.size(20.dp), strokeWidth = 2.dp)
@@ -263,6 +281,19 @@ fun rememberCopyAction(sensitive: Boolean = false): Pair<Boolean, (String) -> Un
             }
             clipboard.setClipEntry(ClipEntry(clip))
             copied = true
+        }
+    }
+}
+
+/** Copies, with a toast before Android 13, which doesn't confirm copies itself. */
+@Composable
+fun rememberCopyWithFeedback(): (String) -> Unit {
+    val context = LocalContext.current
+    val (_, copy) = rememberCopyAction()
+    return { text ->
+        copy(text)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
         }
     }
 }

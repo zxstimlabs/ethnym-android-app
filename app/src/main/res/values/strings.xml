@@ -20,7 +20,9 @@
     <string name="decrypt">Decrypt</string>
     <string name="delete">Delete</string>
     <string name="dismiss">Dismiss</string>
+    <string name="done">Done</string>
     <string name="download">Download</string>
+    <string name="edit">Edit</string>
     <string name="encrypt">Encrypt</string>
     <string name="export">Export</string>
     <string name="import_">Import</string>

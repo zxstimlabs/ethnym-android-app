@@ -28,6 +28,21 @@ data object ExportWallet : NavKey
 @Serializable
 data object DeleteWallet : NavKey
 
+/** The Add Contact form, in a sheet over the Address Book tab. */
+@Serializable
+data object AddContact : NavKey
+
+// Each backup tool has its own screen, opened from the Backup tab.
+
+@Serializable
+data object KeystoreTool : NavKey
+
+@Serializable
+data object LocalBackup : NavKey
+
+@Serializable
+data object CloudSync : NavKey
+
 /** RPC endpoint, offline mode, appearance and log out. Opens from the top bar. */
 @Serializable
 data object Settings : NavKey

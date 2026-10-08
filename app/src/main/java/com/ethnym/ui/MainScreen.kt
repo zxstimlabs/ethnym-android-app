@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.ethnym.R
 import com.ethnym.feature.activity.ActivityTab
 import com.ethnym.feature.addressbook.AddressBookTab
+import com.ethnym.feature.backup.BackupAction
 import com.ethnym.feature.backup.BackupTab
 import com.ethnym.feature.send.SendTab
 import com.ethnym.feature.wallets.WalletAction
@@ -51,6 +52,8 @@ enum class MainTab(@param:StringRes val label: Int, @param:DrawableRes val icon:
 fun MainScreen(
     onManage: () -> Unit,
     onWalletAction: (WalletAction) -> Unit,
+    onAddContact: () -> Unit,
+    onBackupAction: (BackupAction) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Wallets) }
@@ -87,10 +90,10 @@ fun MainScreen(
         ) {
             when (tab) {
                 MainTab.Wallets -> WalletsTab(onManage = onManage, onWalletAction = onWalletAction)
-                MainTab.AddressBook -> AddressBookTab()
+                MainTab.AddressBook -> AddressBookTab(onAddContact = onAddContact)
                 MainTab.Send -> SendTab()
                 MainTab.Activity -> ActivityTab()
-                MainTab.Backup -> BackupTab()
+                MainTab.Backup -> BackupTab(onOpen = onBackupAction)
             }
         }
     }

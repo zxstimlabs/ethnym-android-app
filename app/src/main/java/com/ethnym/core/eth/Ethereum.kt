@@ -14,6 +14,8 @@ object Mainnet {
     const val EXPLORER_URL = "https://etherscan.io"
 
     fun txUrl(hash: String) = "$EXPLORER_URL/tx/$hash"
+
+    fun addressUrl(address: String) = "$EXPLORER_URL/address/$address"
 }
 
 object Addresses {
