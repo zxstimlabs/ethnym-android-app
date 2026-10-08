@@ -11,7 +11,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,7 +25,10 @@ import com.ethnym.core.eth.Mainnet
 import com.ethnym.core.eth.shortHash
 import com.ethnym.feature.common.TxProgress
 
-/** Signature and transaction status, plus any error, as in the web wallet's send forms. */
+/**
+ * Signature and transaction status, plus any error, as in the web wallet's send forms. It has no
+ * card of its own, so it sits inside a section.
+ */
 @Composable
 fun TransactionStatusPanel(
     progress: TxProgress,
@@ -48,27 +50,25 @@ fun TransactionStatusPanel(
                 }
             }
         }
-        OutlinedCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                when (progress) {
-                    TxProgress.Idle -> StatusLine(done = false, text = stringResource(R.string.status_nothing_to_sign), muted = true)
-                    TxProgress.Signing -> StatusLine(busy = true, text = stringResource(R.string.status_pending_signature))
-                    else -> StatusLine(done = true, text = stringResource(R.string.status_signed))
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            when (progress) {
+                TxProgress.Idle -> StatusLine(done = false, text = stringResource(R.string.status_nothing_to_sign), muted = true)
+                TxProgress.Signing -> StatusLine(busy = true, text = stringResource(R.string.status_pending_signature))
+                else -> StatusLine(done = true, text = stringResource(R.string.status_signed))
+            }
+            when (progress) {
+                is TxProgress.Confirming -> {
+                    StatusLine(busy = true, text = stringResource(R.string.status_confirming))
+                    TxHashLink(progress.hash)
                 }
-                when (progress) {
-                    is TxProgress.Confirming -> {
-                        StatusLine(busy = true, text = stringResource(R.string.status_confirming))
-                        TxHashLink(progress.hash)
-                    }
-                    is TxProgress.Confirmed -> {
-                        StatusLine(
-                            done = true,
-                            text = stringResource(if (progress.succeeded) R.string.status_confirmed else R.string.status_reverted),
-                        )
-                        TxHashLink(progress.hash)
-                    }
-                    else -> StatusLine(done = false, text = stringResource(R.string.status_no_transaction), muted = true)
+                is TxProgress.Confirmed -> {
+                    StatusLine(
+                        done = true,
+                        text = stringResource(if (progress.succeeded) R.string.status_confirmed else R.string.status_reverted),
+                    )
+                    TxHashLink(progress.hash)
                 }
+                else -> StatusLine(done = false, text = stringResource(R.string.status_no_transaction), muted = true)
             }
         }
     }

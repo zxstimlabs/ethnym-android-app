@@ -30,11 +30,9 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -178,22 +176,7 @@ fun ComingSoon(description: String? = null, modifier: Modifier = Modifier) {
     }
 }
 
-/** A row of tabs inside a screen (the web wallet's sub-tabs). */
-@Composable
-fun SubTabs(
-    tabs: List<String>,
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    SecondaryTabRow(selectedTabIndex = selectedIndex, modifier = modifier) {
-        tabs.forEachIndexed { index, title ->
-            Tab(selected = index == selectedIndex, onClick = { onSelect(index) }, text = { Text(title, maxLines = 1) })
-        }
-    }
-}
-
-/** Pill tabs for switching between views of one list, as in Balances (iOS's segmented picker). */
+/** Pill tabs for switching between views of one screen, as in Balances (iOS's segmented picker). */
 @Composable
 fun PillTabs(
     tabs: List<String>,

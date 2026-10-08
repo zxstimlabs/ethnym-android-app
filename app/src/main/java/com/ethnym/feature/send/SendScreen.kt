@@ -3,6 +3,7 @@ package com.ethnym.feature.send
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,20 +16,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,18 +60,28 @@ import com.ethnym.ui.components.CopyButton
 import com.ethnym.ui.components.DetailRow
 import com.ethnym.ui.components.ErrorText
 import com.ethnym.ui.components.HintText
-import com.ethnym.ui.components.InfoIconButton
 import com.ethnym.ui.components.PasswordField
-import com.ethnym.ui.components.SubTabs
+import com.ethnym.ui.components.PillTabs
+import com.ethnym.ui.components.SectionCard
+import com.ethnym.ui.components.Tag
 import com.ethnym.ui.components.TransactionStatusPanel
 import java.math.BigInteger
 
-/** Send tab: ETH, Token (ERC-20), NFT (ERC-721) and Sign (raw transaction JSON). */
+/**
+ * Send tab: ETH, Token (ERC-20), NFT (ERC-721) and Sign (raw transaction JSON), switched with pill
+ * tabs as in Activity. Each form is a stack of sections, as in Settings.
+ */
 @Composable
 fun SendTab() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    Column(Modifier.fillMaxSize()) {
-        SubTabs(
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        PillTabs(
             tabs = listOf(
                 stringResource(R.string.send_eth),
                 stringResource(R.string.token),
@@ -82,26 +91,18 @@ fun SendTab() {
             selectedIndex = tab,
             onSelect = { tab = it },
         )
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            when (tab) {
-                0 -> SendNativeForm()
-                1 -> SendTokenForm()
-                2 -> SendNftForm()
-                else -> SignTransactionForm()
-            }
+        when (tab) {
+            0 -> SendNativeForm()
+            1 -> SendTokenForm()
+            2 -> SendNftForm()
+            else -> SignTransactionForm()
         }
     }
 }
 
 @Composable
 private fun SendNativeForm(viewModel: SendNativeViewModel = hiltViewModel()) {
-    AmountField(
+    AmountSection(
         amount = viewModel.amount,
         onAmountChange = { viewModel.amount = it },
         error = viewModel.amountError,
@@ -111,8 +112,8 @@ private fun SendNativeForm(viewModel: SendNativeViewModel = hiltViewModel()) {
         onPercent = viewModel::fillPercent,
     )
     RecipientSection(viewModel)
-    GasPresetField(viewModel.gas)
-    SubmitSection(
+    GasPresetSection(viewModel.gas)
+    SubmitSections(
         password = viewModel.password,
         onPasswordChange = { viewModel.password = it },
         tx = viewModel.tx,
@@ -124,8 +125,7 @@ private fun SendNativeForm(viewModel: SendNativeViewModel = hiltViewModel()) {
 @Composable
 private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
     var picking by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.token), style = MaterialTheme.typography.titleSmall)
+    SectionCard(title = stringResource(R.string.token), info = stringResource(R.string.send_token_info)) {
         OutlinedButton(onClick = {
             viewModel.loadPicker()
             picking = true
@@ -140,7 +140,7 @@ private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
         }
     }
     val info = viewModel.info
-    AmountField(
+    AmountSection(
         amount = viewModel.amount,
         onAmountChange = { viewModel.amount = it },
         error = viewModel.amountError,
@@ -150,8 +150,8 @@ private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
         onPercent = viewModel::fillPercent,
     )
     RecipientSection(viewModel)
-    GasPresetField(viewModel.gas)
-    SubmitSection(
+    GasPresetSection(viewModel.gas)
+    SubmitSections(
         password = viewModel.password,
         onPasswordChange = { viewModel.password = it },
         tx = viewModel.tx,
@@ -175,8 +175,7 @@ private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
 private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
     var picking by remember { mutableStateOf(false) }
     val activeWallet by viewModel.activeWallet.collectAsStateWithLifecycle()
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.nft), style = MaterialTheme.typography.titleSmall)
+    SectionCard(title = stringResource(R.string.nft), info = stringResource(R.string.send_nft_info)) {
         OutlinedButton(onClick = {
             viewModel.loadPicker()
             picking = true
@@ -198,7 +197,7 @@ private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
         when {
             viewModel.infoLoading -> BusyIndicator()
             viewModel.infoError != null -> ErrorText(viewModel.infoError!!)
-            info?.owner != null -> {
+            info?.owner != null -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 info.name?.let { HintText("$it (${info.symbol.orEmpty()})") }
                 HintText(stringResource(R.string.owned_by))
                 AddressText(info.owner)
@@ -207,8 +206,8 @@ private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
         }
     }
     RecipientSection(viewModel)
-    GasPresetField(viewModel.gas)
-    SubmitSection(
+    GasPresetSection(viewModel.gas)
+    SubmitSections(
         password = viewModel.password,
         onPasswordChange = { viewModel.password = it },
         tx = viewModel.tx,
@@ -233,24 +232,28 @@ private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
 private fun SignTransactionForm(viewModel: SignTransactionViewModel = hiltViewModel()) {
     val offline by viewModel.offline.collectAsStateWithLifecycle()
     val invalid = viewModel.validation as? TransactionJson.Invalid
-    if (offline) HintText(stringResource(R.string.sign_offline_hint))
-    OutlinedTextField(
-        value = viewModel.json,
-        onValueChange = { viewModel.json = it },
-        label = { Text(stringResource(R.string.transaction_json)) },
-        placeholder = { Text(stringResource(R.string.transaction_json_placeholder)) },
-        isError = invalid != null,
-        supportingText = invalid?.let { { Text(it.message) } },
-        minLines = 5,
-        textStyle = MaterialTheme.typography.bodySmall,
-        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-        modifier = Modifier.fillMaxWidth(),
-    )
+    SectionCard(
+        title = stringResource(R.string.transaction_json),
+        info = stringResource(R.string.transaction_json_info),
+        accessory = { if (offline) Tag(stringResource(R.string.offline)) },
+    ) {
+        if (offline) HintText(stringResource(R.string.sign_offline_hint))
+        // The section's title names the field, as Sending does for the amount.
+        OutlinedTextField(
+            value = viewModel.json,
+            onValueChange = { viewModel.json = it },
+            placeholder = { Text(stringResource(R.string.transaction_json_placeholder)) },
+            isError = invalid != null,
+            supportingText = invalid?.let { { Text(it.message) } },
+            minLines = 5,
+            textStyle = MaterialTheme.typography.bodySmall,
+            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
     viewModel.parsed?.let { tx ->
-        OutlinedCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.transaction_details), style = MaterialTheme.typography.titleSmall)
-                HorizontalDivider()
+        SectionCard(title = stringResource(R.string.transaction_details), info = stringResource(R.string.transaction_details_info)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 DetailRow(stringResource(R.string.detail_chain), if (tx.chainId == Mainnet.CHAIN_ID) Mainnet.NAME else "Chain ${tx.chainId}")
                 DetailRow(stringResource(R.string.detail_to), tx.to)
                 tx.from?.let { DetailRow(stringResource(R.string.detail_from), it) }
@@ -264,7 +267,7 @@ private fun SignTransactionForm(viewModel: SignTransactionViewModel = hiltViewMo
             }
         }
     }
-    SubmitSection(
+    SubmitSections(
         password = viewModel.password,
         onPasswordChange = { viewModel.password = it },
         tx = viewModel.tx,
@@ -274,31 +277,29 @@ private fun SignTransactionForm(viewModel: SignTransactionViewModel = hiltViewMo
         busyOverride = viewModel.signingOffline,
     )
     viewModel.signedOffline?.let { raw ->
-        Text(stringResource(R.string.signed_transaction), style = MaterialTheme.typography.titleSmall)
-        OutlinedTextField(
-            value = raw,
-            onValueChange = {},
-            readOnly = true,
-            textStyle = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        CopyButton(raw)
+        SectionCard(title = stringResource(R.string.signed_transaction), info = stringResource(R.string.signed_transaction_info)) {
+            OutlinedTextField(
+                value = raw,
+                onValueChange = {},
+                readOnly = true,
+                textStyle = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            CopyButton(raw)
+        }
     }
 }
 
 @Composable
 private fun RecipientSection(viewModel: SendFormViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.recipient), style = MaterialTheme.typography.titleSmall)
-            InfoIconButton(title = stringResource(R.string.recipient), text = stringResource(R.string.recipient_info))
-        }
+    SectionCard(title = stringResource(R.string.recipient), info = stringResource(R.string.recipient_info)) {
         AddressInputField(state = viewModel.recipient, label = stringResource(R.string.address_or_ens))
     }
 }
 
+/** The amount, the balance it's taken from, and buttons that fill in a share of it. */
 @Composable
-private fun AmountField(
+private fun AmountSection(
     amount: String,
     onAmountChange: (String) -> Unit,
     error: String?,
@@ -307,14 +308,11 @@ private fun AmountField(
     onRefreshBalance: () -> Unit,
     onPercent: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.sending), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            listOf(25, 50, 75).forEach { percent ->
-                TextButton(onClick = { onPercent(percent) }) { Text("$percent%") }
-            }
-            TextButton(onClick = { onPercent(100) }) { Text(stringResource(R.string.max)) }
-        }
+    SectionCard(
+        title = stringResource(R.string.sending),
+        info = stringResource(R.string.sending_info),
+        accessory = { RefreshButton(loading = balanceLoading, onClick = onRefreshBalance) },
+    ) {
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
@@ -326,40 +324,56 @@ private fun AmountField(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HintText(stringResource(R.string.balance_value, balanceText ?: "--"), Modifier.weight(1f))
-            IconButton(onClick = onRefreshBalance, enabled = !balanceLoading) {
-                if (balanceLoading) BusyIndicator() else Icon(painterResource(R.drawable.ic_refresh), stringResource(R.string.refresh))
+        HintText(stringResource(R.string.balance_value, balanceText ?: "--"))
+        // Four to a row; the default padding would squeeze the labels on a phone.
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(25, 50, 75, 100).forEach { percent ->
+                FilledTonalButton(
+                    onClick = { onPercent(percent) },
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(if (percent == 100) stringResource(R.string.max) else "$percent%", maxLines = 1)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun GasPresetField(gas: GasPresetState) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(stringResource(R.string.gas_preset), style = MaterialTheme.typography.titleSmall)
+private fun GasPresetSection(gas: GasPresetState) {
+    SectionCard(
+        title = stringResource(R.string.gas_preset),
+        info = stringResource(R.string.gas_preset_info),
+        accessory = { RefreshButton(loading = gas.loading, onClick = gas::refresh) },
+    ) {
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             GasPreset.entries.forEachIndexed { index, preset ->
                 SegmentedButton(
                     selected = gas.preset == preset,
                     onClick = { gas.select(preset) },
                     shape = SegmentedButtonDefaults.itemShape(index, GasPreset.entries.size),
-                ) { Text(preset.label) }
+                    icon = {},
+                    label = { Text(preset.label) },
+                )
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HintText(stringResource(R.string.gwei_value, gas.gasPriceGwei), Modifier.weight(1f))
-            IconButton(onClick = gas::refresh, enabled = !gas.loading) {
-                if (gas.loading) BusyIndicator() else Icon(painterResource(R.drawable.ic_refresh), stringResource(R.string.refresh))
-            }
-        }
+        HintText(stringResource(R.string.gwei_value, gas.gasPriceGwei))
         gas.error?.let { ErrorText(it) }
     }
 }
 
+/** A section header's refresh button; the spinner takes its place, so the header doesn't jump. */
 @Composable
-private fun SubmitSection(
+private fun RefreshButton(loading: Boolean, onClick: () -> Unit) {
+    IconButton(onClick = onClick, enabled = !loading) {
+        if (loading) BusyIndicator() else Icon(painterResource(R.drawable.ic_refresh), stringResource(R.string.refresh))
+    }
+}
+
+/** The password with Reset and Send, then the transaction's progress in a section of its own. */
+@Composable
+private fun SubmitSections(
     password: String,
     onPasswordChange: (String) -> Unit,
     tx: TransactionRunner,
@@ -369,17 +383,20 @@ private fun SubmitSection(
     busyOverride: Boolean = false,
 ) {
     val busy = tx.busy || busyOverride
-    HorizontalDivider()
-    PasswordField(value = password, onValueChange = onPasswordChange)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = onReset, enabled = !busy, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.reset))
-        }
-        Button(onClick = onSend, enabled = !busy, modifier = Modifier.weight(2f)) {
-            if (busy) BusyIndicator() else Text(primaryLabel)
+    SectionCard(title = stringResource(R.string.confirm), info = stringResource(R.string.confirm_info)) {
+        PasswordField(value = password, onValueChange = onPasswordChange)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onReset, enabled = !busy, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.reset))
+            }
+            Button(onClick = onSend, enabled = !busy, modifier = Modifier.weight(2f)) {
+                if (busy) BusyIndicator() else Text(primaryLabel)
+            }
         }
     }
-    TransactionStatusPanel(progress = tx.progress, error = tx.error, onClearError = tx::clearError)
+    SectionCard(title = stringResource(R.string.status), info = stringResource(R.string.status_info)) {
+        TransactionStatusPanel(progress = tx.progress, error = tx.error, onClearError = tx::clearError)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
