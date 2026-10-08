@@ -1,7 +1,6 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.5:
-• Address book is one card with search and +; Add contact opens in a sheet
-• Tap a contact to copy, view on Etherscan or delete; Edit shows delete buttons
-• Backup lists its tools in one card, each opening its own screen
-• Activity switches between Outgoing and Incoming with pill tabs
+New in 0.1.6:
+• Send is laid out in sections with an info button, like Settings
+• ETH, Token, NFT and Sign switch with pill tabs
+• 25%, 50%, 75% and Max sit under the amount; refresh buttons are in the section headers
 Please report anything that looks off, especially when sending.
