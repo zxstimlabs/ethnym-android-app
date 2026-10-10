@@ -48,6 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ethnym.R
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.WalletKeystore
+import com.ethnym.ui.components.AddressInputField
+import com.ethnym.ui.components.BusyIndicator
 import com.ethnym.ui.components.CopyButton
 import com.ethnym.ui.components.FormButtons
 import com.ethnym.ui.components.HintText
@@ -260,6 +264,29 @@ fun ImportWalletForm(viewModel: ImportWalletViewModel = hiltViewModel()) {
             busy = viewModel.busy,
             onReset = viewModel::resetPhraseForm,
         )
+
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        HintText(stringResource(R.string.import_view_only))
+        OutlinedTextField(
+            value = viewModel.viewOnlyName,
+            onValueChange = { viewModel.viewOnlyName = it },
+            label = { Text(stringResource(R.string.wallet_name_optional)) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        AddressInputField(
+            state = viewModel.viewOnlyAddress,
+            label = stringResource(R.string.address_or_ens),
+            extraError = viewModel.viewOnlyDuplicateError,
+        )
+        FormButtons(
+            primary = stringResource(R.string.import_),
+            onPrimary = viewModel::addViewOnly,
+            primaryEnabled = viewModel.canAddViewOnly,
+            busy = viewModel.addingViewOnly,
+            onReset = viewModel::resetViewOnlyForm,
+        )
     }
 }
 
@@ -272,11 +299,13 @@ fun ExportWalletForm(viewModel: ExportWalletViewModel = hiltViewModel()) {
     val saveAll = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let(viewModel::saveAll)
     }
+    val keystore = active as? WalletKeystore
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         viewModel.message?.let { HintText(it) }
+        (active as? ViewOnlyWallet)?.let { HintText(stringResource(R.string.view_only_nothing_to_export, it.name)) }
 
-        HintText(stringResource(if (active != null) R.string.download_active_keystore else R.string.select_wallet_to_download))
-        Button(onClick = { saveActive.launch(viewModel.activeFileName()) }, enabled = active != null) {
+        HintText(stringResource(if (keystore != null) R.string.download_active_keystore else R.string.select_wallet_to_download))
+        Button(onClick = { saveActive.launch(viewModel.activeFileName()) }, enabled = keystore != null) {
             Text(stringResource(R.string.download))
         }
 
@@ -285,12 +314,12 @@ fun ExportWalletForm(viewModel: ExportWalletViewModel = hiltViewModel()) {
         Button(onClick = { saveAll.launch(viewModel.allFileName()) }) { Text(stringResource(R.string.download)) }
 
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        HintText(stringResource(if (active != null) R.string.reveal_phrase_hint else R.string.select_wallet_to_reveal))
+        HintText(stringResource(if (keystore != null) R.string.reveal_phrase_hint else R.string.select_wallet_to_reveal))
         PasswordField(value = viewModel.password, onValueChange = { viewModel.password = it })
         FormButtons(
             primary = stringResource(R.string.export),
             onPrimary = viewModel::reveal,
-            primaryEnabled = active != null && viewModel.password.isNotEmpty() && !viewModel.busy,
+            primaryEnabled = keystore != null && viewModel.password.isNotEmpty() && !viewModel.busy,
             busy = viewModel.busy,
             onReset = viewModel::reset,
         )
@@ -309,6 +338,10 @@ fun ExportWalletForm(viewModel: ExportWalletViewModel = hiltViewModel()) {
 @Composable
 fun DeleteWalletForm(viewModel: DeleteWalletViewModel = hiltViewModel()) {
     val active by viewModel.active.collectAsStateWithLifecycle()
+    (active as? ViewOnlyWallet)?.let { wallet ->
+        DeleteViewOnlyForm(wallet, viewModel)
+        return
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         viewModel.message?.let { HintText(it) }
         HintText(
@@ -330,6 +363,18 @@ fun DeleteWalletForm(viewModel: DeleteWalletViewModel = hiltViewModel()) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                 Text(stringResource(R.string.wrong_password), modifier = Modifier.padding(12.dp))
             }
+        }
+    }
+}
+
+/** No password step: there are no keys to unlock. */
+@Composable
+private fun DeleteViewOnlyForm(wallet: ViewOnlyWallet, viewModel: DeleteWalletViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        viewModel.message?.let { HintText(it) }
+        HintText(stringResource(R.string.delete_view_only_hint, wallet.name))
+        Button(onClick = viewModel::delete, enabled = !viewModel.busy) {
+            if (viewModel.busy) BusyIndicator() else Text(stringResource(R.string.delete))
         }
     }
 }

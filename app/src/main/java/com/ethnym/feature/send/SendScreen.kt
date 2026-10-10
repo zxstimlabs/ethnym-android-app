@@ -47,10 +47,14 @@ import com.ethnym.R
 import com.ethnym.core.eth.Mainnet
 import com.ethnym.core.eth.TransactionJson
 import com.ethnym.core.eth.Units
+import com.ethnym.data.model.ViewOnlyWallet
 import com.ethnym.feature.balances.TokenRow
 import com.ethnym.feature.common.GasPreset
 import com.ethnym.feature.common.GasPresetState
 import com.ethnym.feature.common.TransactionRunner
+import com.ethnym.feature.wallets.ViewOnlyBanner
+import com.ethnym.feature.wallets.WalletsUiState
+import com.ethnym.feature.wallets.WalletsViewModel
 import com.ethnym.data.portfolio.KnownCollection
 import com.ethnym.data.portfolio.OwnedNft
 import com.ethnym.ui.components.AddressInputField
@@ -69,10 +73,13 @@ import java.math.BigInteger
 
 /**
  * Send tab: ETH, Token (ERC-20), NFT (ERC-721) and Sign (raw transaction JSON), switched with pill
- * tabs as in Activity. Each form is a stack of sections, as in Settings.
+ * tabs as in Activity. Each form is a stack of sections, as in Settings. With a view-only wallet
+ * selected, a banner says it can't send and every form's Send is off.
  */
 @Composable
-fun SendTab() {
+fun SendTab(walletsViewModel: WalletsViewModel = hiltViewModel()) {
+    val wallets by walletsViewModel.uiState.collectAsStateWithLifecycle()
+    val viewOnly = (wallets as? WalletsUiState.Ready)?.active is ViewOnlyWallet
     var tab by rememberSaveable { mutableIntStateOf(0) }
     Column(
         Modifier
@@ -81,6 +88,7 @@ fun SendTab() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (viewOnly) ViewOnlyBanner(stringResource(R.string.view_only_cant_send))
         PillTabs(
             tabs = listOf(
                 stringResource(R.string.send_eth),
@@ -92,16 +100,16 @@ fun SendTab() {
             onSelect = { tab = it },
         )
         when (tab) {
-            0 -> SendNativeForm()
-            1 -> SendTokenForm()
-            2 -> SendNftForm()
-            else -> SignTransactionForm()
+            0 -> SendNativeForm(viewOnly)
+            1 -> SendTokenForm(viewOnly)
+            2 -> SendNftForm(viewOnly)
+            else -> SignTransactionForm(viewOnly)
         }
     }
 }
 
 @Composable
-private fun SendNativeForm(viewModel: SendNativeViewModel = hiltViewModel()) {
+private fun SendNativeForm(viewOnly: Boolean, viewModel: SendNativeViewModel = hiltViewModel()) {
     AmountSection(
         amount = viewModel.amount,
         onAmountChange = { viewModel.amount = it },
@@ -119,11 +127,12 @@ private fun SendNativeForm(viewModel: SendNativeViewModel = hiltViewModel()) {
         tx = viewModel.tx,
         onSend = viewModel::send,
         onReset = viewModel::reset,
+        viewOnly = viewOnly,
     )
 }
 
 @Composable
-private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
+private fun SendTokenForm(viewOnly: Boolean, viewModel: SendTokenViewModel = hiltViewModel()) {
     var picking by remember { mutableStateOf(false) }
     SectionCard(title = stringResource(R.string.token), info = stringResource(R.string.send_token_info)) {
         OutlinedButton(onClick = {
@@ -157,6 +166,7 @@ private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
         tx = viewModel.tx,
         onSend = viewModel::send,
         onReset = viewModel::reset,
+        viewOnly = viewOnly,
     )
     if (picking) {
         TokenPickerSheet(
@@ -172,7 +182,7 @@ private fun SendTokenForm(viewModel: SendTokenViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
+private fun SendNftForm(viewOnly: Boolean, viewModel: SendNftViewModel = hiltViewModel()) {
     var picking by remember { mutableStateOf(false) }
     val activeWallet by viewModel.activeWallet.collectAsStateWithLifecycle()
     SectionCard(title = stringResource(R.string.nft), info = stringResource(R.string.send_nft_info)) {
@@ -213,6 +223,7 @@ private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
         tx = viewModel.tx,
         onSend = viewModel::send,
         onReset = viewModel::reset,
+        viewOnly = viewOnly,
     )
     if (picking) {
         NftPickerSheet(
@@ -229,7 +240,7 @@ private fun SendNftForm(viewModel: SendNftViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun SignTransactionForm(viewModel: SignTransactionViewModel = hiltViewModel()) {
+private fun SignTransactionForm(viewOnly: Boolean, viewModel: SignTransactionViewModel = hiltViewModel()) {
     val offline by viewModel.offline.collectAsStateWithLifecycle()
     val invalid = viewModel.validation as? TransactionJson.Invalid
     SectionCard(
@@ -275,6 +286,7 @@ private fun SignTransactionForm(viewModel: SignTransactionViewModel = hiltViewMo
         onReset = viewModel::reset,
         primaryLabel = stringResource(if (offline) R.string.sign else R.string.send),
         busyOverride = viewModel.signingOffline,
+        viewOnly = viewOnly,
     )
     viewModel.signedOffline?.let { raw ->
         SectionCard(title = stringResource(R.string.signed_transaction), info = stringResource(R.string.signed_transaction_info)) {
@@ -371,7 +383,10 @@ private fun RefreshButton(loading: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** The password with Reset and Send, then the transaction's progress in a section of its own. */
+/**
+ * The password with Reset and Send, then the transaction's progress in a section of its own. A
+ * [viewOnly] wallet has no keys, so Send is off; the tab's banner says why.
+ */
 @Composable
 private fun SubmitSections(
     password: String,
@@ -379,6 +394,7 @@ private fun SubmitSections(
     tx: TransactionRunner,
     onSend: () -> Unit,
     onReset: () -> Unit,
+    viewOnly: Boolean,
     primaryLabel: String = stringResource(R.string.send),
     busyOverride: Boolean = false,
 ) {
@@ -389,7 +405,7 @@ private fun SubmitSections(
             OutlinedButton(onClick = onReset, enabled = !busy, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.reset))
             }
-            Button(onClick = onSend, enabled = !busy, modifier = Modifier.weight(2f)) {
+            Button(onClick = onSend, enabled = !busy && !viewOnly, modifier = Modifier.weight(2f)) {
                 if (busy) BusyIndicator() else Text(primaryLabel)
             }
         }

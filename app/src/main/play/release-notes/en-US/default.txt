@@ -1,6 +1,6 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.6:
-• Send is laid out in sections with an info button, like Settings
-• ETH, Token, NFT and Sign switch with pill tabs
-• 25%, 50%, 75% and Max sit under the amount; refresh buttons are in the section headers
+New in 0.1.7:
+• Import a view-only wallet with just an address or ENS name, under Manage > Import wallet
+• View-only wallets are tagged in the wallet picker and show their balances
+• Send and Backup are off for view-only wallets, with a banner saying why
 Please report anything that looks off, especially when sending.

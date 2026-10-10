@@ -21,6 +21,8 @@ import com.ethnym.data.chain.TransactionRequest
 import com.ethnym.data.chain.TransactionSender
 import com.ethnym.data.model.ActivityRecord
 import com.ethnym.data.model.TxType
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.Wallet
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.data.portfolio.KnownCollection
 import com.ethnym.data.portfolio.OwnedNft
@@ -54,7 +56,7 @@ abstract class SendFormViewModel(
     activityRepository: ActivityRepository,
 ) : ViewModel() {
 
-    val activeWallet: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+    val activeWallet: StateFlow<Wallet?> = walletRepository.activeWallet
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val recipient = AddressFieldState(viewModelScope, client)
@@ -68,7 +70,7 @@ abstract class SendFormViewModel(
 
     /** Checks common to every form; returns the active wallet and recipient when they are ready. */
     protected fun readyToSend(): Pair<WalletKeystore, String>? {
-        val wallet = activeWallet.value ?: return null.also { tx.showError("No active wallet selected.") }
+        val wallet = activeWallet.value as? WalletKeystore ?: return null.also { tx.showError(cannotSignError(activeWallet.value)) }
         val to = recipient.resolved ?: return null.also {
             tx.showError(
                 if (recipient.isEnsName) "ENS address not resolved. Tap the search icon to resolve it first."
@@ -88,6 +90,10 @@ abstract class SendFormViewModel(
         tx.reset()
     }
 }
+
+/** Why [active] can't sign: there is none, or it is view-only. */
+private fun cannotSignError(active: Wallet?): String =
+    if (active is ViewOnlyWallet) "You can't send with a view-only wallet." else "No active wallet selected."
 
 /** Validation for the amount field, with the web wallet's messages. */
 fun amountError(amount: String, decimals: Int, balance: BigInteger?): String? {
@@ -427,7 +433,7 @@ class SignTransactionViewModel @Inject constructor(
     activityRepository: ActivityRepository,
 ) : ViewModel() {
 
-    val activeWallet: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+    val activeWallet: StateFlow<Wallet?> = walletRepository.activeWallet
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val offline: StateFlow<Boolean> = settingsRepository.settings.map { it.offlineMode }
@@ -450,7 +456,7 @@ class SignTransactionViewModel @Inject constructor(
             is TransactionJson.Invalid -> return tx.showError(result.message)
             is TransactionJson.Valid -> result.transaction
         }
-        val wallet = activeWallet.value ?: return tx.showError("No active wallet selected.")
+        val wallet = activeWallet.value as? WalletKeystore ?: return tx.showError(cannotSignError(activeWallet.value))
         if (transaction.chainId != Mainnet.CHAIN_ID) return tx.showError("Only Ethereum mainnet (chainId 1) is supported")
         if (!Addresses.isValid(transaction.to)) return tx.showError("'to' is not a valid address")
         if (password.isEmpty()) return tx.showError("Please enter your wallet password")

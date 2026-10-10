@@ -8,14 +8,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ethnym.core.crypto.Mnemonics
 import com.ethnym.core.crypto.WrongPasswordException
+import com.ethnym.core.eth.shortHash
 import com.ethnym.data.AppJson
+import com.ethnym.data.chain.EthereumClient
 import com.ethnym.data.files.DocumentRepository
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.Wallet
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.data.model.needsMigration
 import com.ethnym.data.settings.SettingsRepository
 import com.ethnym.data.wallet.WalletRepository
+import com.ethnym.feature.common.AddressFieldState
 import com.ethnym.feature.common.userMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -32,11 +38,11 @@ sealed interface WalletsUiState {
     data object Loading : WalletsUiState
 
     data class Ready(
-        val wallets: List<WalletKeystore>,
-        val active: WalletKeystore?,
+        val wallets: List<Wallet>,
+        val active: Wallet?,
         val offline: Boolean,
     ) : WalletsUiState {
-        val staleCount: Int get() = wallets.count { it.needsMigration() }
+        val staleCount: Int get() = wallets.count { it is WalletKeystore && it.needsMigration() }
     }
 }
 
@@ -49,7 +55,7 @@ class WalletsViewModel @Inject constructor(
     val uiState: StateFlow<WalletsUiState> = combine(
         walletRepository.vault,
         settingsRepository.settings.map { it.offlineMode }.distinctUntilChanged(),
-    ) { vault, offline -> WalletsUiState.Ready(vault.wallets, vault.wallets.find { it.id == vault.activeWalletId }, offline) }
+    ) { vault, offline -> WalletsUiState.Ready(vault.allWallets, vault.active, offline) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WalletsUiState.Loading)
 
     fun select(id: String?) {
@@ -101,7 +107,11 @@ class CreateWalletViewModel @Inject constructor(
 class ImportWalletViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
     private val documentRepository: DocumentRepository,
+    client: EthereumClient,
 ) : ViewModel() {
+    private val wallets: StateFlow<List<Wallet>> = walletRepository.vault.map { it.allWallets }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     var fileKeystores by mutableStateOf<List<WalletKeystore>?>(null)
         private set
     var fileName by mutableStateOf<String?>(null)
@@ -112,8 +122,21 @@ class ImportWalletViewModel @Inject constructor(
     var phrase by mutableStateOf("")
     var busy by mutableStateOf(false)
         private set
+    var viewOnlyName by mutableStateOf("")
+    val viewOnlyAddress = AddressFieldState(viewModelScope, client)
+    var addingViewOnly by mutableStateOf(false)
+        private set
     var message by mutableStateOf<String?>(null)
         private set
+
+    /** Set when one of the wallets already has the address. */
+    val viewOnlyDuplicateError: String?
+        get() {
+            val resolved = viewOnlyAddress.resolved ?: return null
+            return wallets.value.find { it.address.equals(resolved, ignoreCase = true) }?.let { "Already added as ${it.name}" }
+        }
+
+    val canAddViewOnly: Boolean get() = viewOnlyAddress.resolved != null && viewOnlyDuplicateError == null && !addingViewOnly
 
     val canImportPhrase: Boolean get() = name.isNotBlank() && password.isNotEmpty() && phrase.isNotBlank() && !busy
 
@@ -179,6 +202,32 @@ class ImportWalletViewModel @Inject constructor(
         phrase = ""
     }
 
+    /** Without a name, the wallet is named after the ENS name typed, else the short address. */
+    fun addViewOnly() {
+        val address = viewOnlyAddress.resolved ?: return
+        if (!canAddViewOnly) return
+        val name = viewOnlyName.trim().ifEmpty { viewOnlyAddress.text.trim().takeIf { viewOnlyAddress.isEnsName } ?: shortHash(address) }
+        addingViewOnly = true
+        viewModelScope.launch {
+            message = try {
+                val wallet = walletRepository.addViewOnly(name, address)
+                resetViewOnlyForm()
+                "Imported ${wallet.name} as view-only"
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.userMessage()
+            } finally {
+                addingViewOnly = false
+            }
+        }
+    }
+
+    fun resetViewOnlyForm() {
+        viewOnlyName = ""
+        viewOnlyAddress.clear()
+    }
+
     private fun importMessage(result: WalletRepository.ImportResult): String =
         buildString {
             append("Imported ${result.imported} wallet${if (result.imported == 1) "" else "s"}")
@@ -197,7 +246,8 @@ class ExportWalletViewModel @Inject constructor(
     private val documentRepository: DocumentRepository,
 ) : ViewModel() {
 
-    val active: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+    /** View-only wallets have nothing to export; the form says so. */
+    val active: StateFlow<Wallet?> = walletRepository.activeWallet
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     var password by mutableStateOf("")
@@ -213,7 +263,7 @@ class ExportWalletViewModel @Inject constructor(
     fun allFileName(): String = "ethnym-wallets-DO_NOT_DELETE.json"
 
     fun saveActive(uri: Uri) {
-        val wallet = active.value ?: return
+        val wallet = active.value as? WalletKeystore ?: return
         viewModelScope.launch {
             message = runCatching {
                 documentRepository.writeText(uri, AppJson.pretty.encodeToString(WalletKeystore.serializer(), wallet))
@@ -232,7 +282,7 @@ class ExportWalletViewModel @Inject constructor(
     }
 
     fun reveal() {
-        val wallet = active.value ?: return
+        val wallet = active.value as? WalletKeystore ?: return
         if (password.isEmpty()) return
         busy = true
         viewModelScope.launch {
@@ -264,7 +314,7 @@ class DeleteWalletViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
 ) : ViewModel() {
 
-    val active: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+    val active: StateFlow<Wallet?> = walletRepository.activeWallet
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     var password by mutableStateOf("")
@@ -275,13 +325,17 @@ class DeleteWalletViewModel @Inject constructor(
     var message by mutableStateOf<String?>(null)
         private set
 
+    /** Wallets with keys need their password; view-only ones have none. */
     fun delete() {
         val wallet = active.value ?: return
-        if (password.isEmpty()) return
+        if (wallet is WalletKeystore && password.isEmpty()) return
         busy = true
         viewModelScope.launch {
             try {
-                walletRepository.delete(wallet, password)
+                when (wallet) {
+                    is WalletKeystore -> walletRepository.delete(wallet, password)
+                    is ViewOnlyWallet -> walletRepository.removeViewOnly(wallet)
+                }
                 password = ""
                 wrongPassword = false
                 message = "Deleted ${wallet.name}"

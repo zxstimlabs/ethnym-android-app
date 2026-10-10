@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +48,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ethnym.R
 import com.ethnym.core.eth.shortHash
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.Wallet
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.feature.balances.BalancesSection
 import com.ethnym.ui.components.AddressQrDialog
@@ -167,11 +170,11 @@ private fun RowScope.ActionLabel(text: String, @DrawableRes icon: Int) {
     Text(text, maxLines = 1)
 }
 
-/** The active wallet's name; tapping it lists the wallets to switch to. */
+/** The active wallet's name; tapping it lists the wallets to switch to. View-only ones are tagged. */
 @Composable
 private fun WalletPicker(
-    wallets: List<WalletKeystore>,
-    active: WalletKeystore?,
+    wallets: List<Wallet>,
+    active: Wallet?,
     onSelect: (String?) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -191,6 +194,7 @@ private fun WalletPicker(
                 color = if (active == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f, fill = false),
             )
+            if (active is ViewOnlyWallet) ViewOnlyTag()
             Icon(
                 painterResource(R.drawable.ic_unfold_more),
                 contentDescription = null,
@@ -203,7 +207,10 @@ private fun WalletPicker(
                 DropdownMenuItem(
                     text = {
                         Column {
-                            Text(wallet.name)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(wallet.name, modifier = Modifier.weight(1f, fill = false))
+                                if (wallet is ViewOnlyWallet) ViewOnlyTag()
+                            }
                             Text(
                                 shortHash(wallet.address),
                                 style = MaterialTheme.typography.bodySmall,
@@ -235,6 +242,36 @@ private fun WalletPicker(
                     expanded = false
                 },
             )
+        }
+    }
+}
+
+/** Marks a wallet without keys, wherever wallets are listed. */
+@Composable
+fun ViewOnlyTag(modifier: Modifier = Modifier) {
+    Tag(stringResource(R.string.view_only), modifier, icon = R.drawable.ic_visibility)
+}
+
+/**
+ * Tops a tab that a view-only wallet can't use, saying why its actions are off. Inverse colors,
+ * so it stands apart from the section cards below it.
+ */
+@Composable
+fun ViewOnlyBanner(text: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.inverseSurface,
+            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        ),
+    ) {
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(painterResource(R.drawable.ic_visibility), contentDescription = null)
+            Text(text, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

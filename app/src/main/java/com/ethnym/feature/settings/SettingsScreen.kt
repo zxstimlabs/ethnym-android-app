@@ -50,13 +50,15 @@ import androidx.lifecycle.viewModelScope
 import com.ethnym.BuildConfig
 import com.ethnym.R
 import com.ethnym.data.model.RpcEntry
-import com.ethnym.data.model.WalletKeystore
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.Wallet
 import com.ethnym.data.model.WalletSettings
 import com.ethnym.data.settings.SettingsRepository
 import com.ethnym.data.settings.ThemeMode
 import com.ethnym.data.settings.UserPreferencesRepository
 import com.ethnym.data.settings.validateRpcUrl
 import com.ethnym.data.wallet.WalletRepository
+import com.ethnym.feature.wallets.ViewOnlyTag
 import com.ethnym.ui.components.AddressText
 import com.ethnym.ui.components.HintText
 import com.ethnym.ui.components.SectionCard
@@ -79,7 +81,7 @@ class SettingsViewModel @Inject constructor(
     val settings: StateFlow<WalletSettings?> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val activeWallet: StateFlow<WalletKeystore?> = walletRepository.activeWallet
+    val activeWallet: StateFlow<Wallet?> = walletRepository.activeWallet
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val themeMode: StateFlow<ThemeMode> = userPreferencesRepository.userPreferences
@@ -178,7 +180,10 @@ private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Uni
             val wallet = activeWallet
             if (wallet != null) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(wallet.name, style = MaterialTheme.typography.titleSmall)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(wallet.name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f, fill = false))
+                        if (wallet is ViewOnlyWallet) ViewOnlyTag()
+                    }
                     AddressText(wallet.address)
                 }
             } else {

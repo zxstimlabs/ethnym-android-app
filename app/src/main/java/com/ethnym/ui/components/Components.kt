@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.os.Build
 import android.os.PersistableBundle
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -134,17 +135,20 @@ fun SectionIntro(
     }
 }
 
-/** A small outlined label, such as "Offline". */
+/** A small outlined label, such as "Offline", with an optional leading [icon]. */
 @Composable
-fun Tag(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+fun Tag(text: String, modifier: Modifier = Modifier, @DrawableRes icon: Int? = null) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
         modifier = modifier
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(5.dp))
             .padding(horizontal = 6.dp, vertical = 2.dp),
-    )
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        if (icon != null) Icon(painterResource(icon), contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
+        Text(text = text, style = MaterialTheme.typography.labelSmall, color = color)
+    }
 }
 
 /** Short explanatory text above a form, like the web wallet's muted headings. */

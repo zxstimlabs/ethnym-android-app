@@ -26,6 +26,7 @@
     <!-- Backup -->
     <string name="keystore">Keystore</string>
     <string name="backup">Backup</string>
+    <string name="view_only_cant_back_up">You can\'t back up with a view-only wallet.</string>
     <string name="backup_info">Ways to keep a copy of your wallets. Everything is encrypted with a password you choose before it\'s saved.</string>
     <string name="keystore_detail">Encrypt any secret phrase to a keystore, or decrypt a keystore back to its phrase.</string>
     <string name="local_backup_detail">Export wallets, contacts, settings and activity as one encrypted file.</string>

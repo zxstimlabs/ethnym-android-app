@@ -28,6 +28,7 @@
     <string name="enter_token_id_manually">Enter the token ID manually</string>
     <string name="owned_by">Owned by</string>
     <string name="not_owner">The active wallet does not own this token.</string>
+    <string name="view_only_cant_send">You can\'t send with a view-only wallet.</string>
 
     <!-- Sign (raw transaction) -->
     <string name="transaction_json">Transaction JSON</string>

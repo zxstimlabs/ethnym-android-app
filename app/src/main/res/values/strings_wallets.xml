@@ -7,6 +7,7 @@
     <string name="select_a_wallet">Select a wallet</string>
     <string name="switch_wallet">switch wallet</string>
     <string name="create_or_import_wallet">Create or import a wallet</string>
+    <string name="view_only">View only</string>
     <string name="offline">Offline</string>
     <string name="receive">Receive</string>
     <string name="manage">Manage</string>
@@ -37,6 +38,8 @@
     <string name="import_keystore_contents">Import with keystore contents</string>
     <string name="paste_keystore_placeholder">Paste your keystore file content here</string>
     <string name="import_secret_phrase">Import with secret phrase</string>
+    <string name="import_view_only">Import view-only with an address. It shows balances, but can\'t send or sign.</string>
+    <string name="wallet_name_optional">Wallet name (optional)</string>
 
     <!-- Export -->
     <string name="download_active_keystore">Download the backup keystore for the current wallet</string>
@@ -45,12 +48,14 @@
     <string name="reveal_phrase_hint">Export and reveal the current wallet\'s secret phrase</string>
     <string name="select_wallet_to_reveal">Select a wallet to export and reveal its secret phrase</string>
     <string name="exported_phrase_placeholder">Your exported secret phrase</string>
+    <string name="view_only_nothing_to_export">%1$s is view-only, so it has no keystore or secret phrase to export.</string>
 
     <!-- Delete -->
     <string name="delete_wallet_hint">Follow the steps below to delete %1$s.</string>
     <string name="select_wallet_to_delete">Select a wallet to delete.</string>
     <string name="delete_step_password">1. Enter your wallet password</string>
     <string name="delete_step_confirm">2. Confirm to delete the wallet</string>
+    <string name="delete_view_only_hint">%1$s is view-only. Deleting it only removes the address from this device; there are no keys to lose.</string>
 
     <!-- Balances -->
     <string name="token">Token</string>

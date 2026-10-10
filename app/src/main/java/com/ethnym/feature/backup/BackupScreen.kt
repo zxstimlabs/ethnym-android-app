@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,8 +58,12 @@ import com.ethnym.data.AppJson
 import com.ethnym.data.backup.BackupRepository
 import com.ethnym.data.backup.KeystoreTool
 import com.ethnym.data.files.DocumentRepository
+import com.ethnym.data.model.ViewOnlyWallet
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.feature.common.userMessage
+import com.ethnym.feature.wallets.ViewOnlyBanner
+import com.ethnym.feature.wallets.WalletsUiState
+import com.ethnym.feature.wallets.WalletsViewModel
 import com.ethnym.ui.components.ComingSoon
 import com.ethnym.ui.components.CopyButton
 import com.ethnym.ui.components.DetailRow
@@ -207,33 +212,41 @@ enum class BackupAction(@param:StringRes val label: Int, @param:StringRes val de
     CloudSync(R.string.cloud_sync, R.string.coming_soon, R.drawable.ic_cloud),
 }
 
-/** Backup tab: one card with a row per tool, as on iOS. */
+/**
+ * Backup tab: one card with a row per tool, as on iOS. With a view-only wallet selected, a banner
+ * says it can't back up and the rows are off.
+ */
 @Composable
-fun BackupTab(onOpen: (BackupAction) -> Unit) {
+fun BackupTab(onOpen: (BackupAction) -> Unit, walletsViewModel: WalletsViewModel = hiltViewModel()) {
+    val wallets by walletsViewModel.uiState.collectAsStateWithLifecycle()
+    val viewOnly = (wallets as? WalletsUiState.Ready)?.active is ViewOnlyWallet
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (viewOnly) ViewOnlyBanner(stringResource(R.string.view_only_cant_back_up))
         SectionCard(title = stringResource(R.string.backup), info = stringResource(R.string.backup_info)) {
             Column {
                 BackupAction.entries.forEachIndexed { index, action ->
                     if (index > 0) HorizontalDivider()
-                    BackupRow(action, onClick = { onOpen(action) })
+                    BackupRow(action, enabled = !viewOnly, onClick = { onOpen(action) })
                 }
             }
         }
     }
 }
 
-/** Icon, title and a line on what it does; the chevron says it opens a screen. */
+/** Icon, title and a line on what it does; the chevron says it opens a screen. Dimmed while disabled. */
 @Composable
-private fun BackupRow(action: BackupAction, onClick: () -> Unit) {
+private fun BackupRow(action: BackupAction, enabled: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
+            .alpha(if (enabled) 1f else 0.38f)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),

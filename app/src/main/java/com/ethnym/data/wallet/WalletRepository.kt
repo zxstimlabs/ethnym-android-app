@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import com.ethnym.core.crypto.Mnemonics
 import com.ethnym.core.crypto.SecretKeystore
 import com.ethnym.core.crypto.WrongPasswordException
+import com.ethnym.data.model.ViewOnlyWallet
+import com.ethnym.data.model.Wallet
 import com.ethnym.data.model.WalletKeystore
 import com.ethnym.data.model.WalletVault
 import com.ethnym.data.model.needsMigration
@@ -18,6 +20,7 @@ import javax.inject.Singleton
 /**
  * The wallet list. Each wallet's phrase is encrypted with its own password; every operation
  * that needs the phrase (signing, revealing, deleting) decrypts it on demand and keeps nothing.
+ * View-only wallets are just an address and a name.
  */
 @Singleton
 class WalletRepository @Inject constructor(
@@ -25,9 +28,11 @@ class WalletRepository @Inject constructor(
 ) {
     val vault: Flow<WalletVault> = dataStore.data
 
+    /** Wallets with keys; view-only ones are in [vault]. */
     val wallets: Flow<List<WalletKeystore>> = vault.map { it.wallets }
 
-    val activeWallet: Flow<WalletKeystore?> = vault.map { vault -> vault.wallets.find { it.id == vault.activeWalletId } }
+    /** The selected wallet, which may be view-only. */
+    val activeWallet: Flow<Wallet?> = vault.map { it.active }
 
     /** Generates a new phrase and stores it encrypted. Selects it when no wallet is selected. */
     suspend fun create(name: String, password: String): WalletKeystore =
@@ -59,6 +64,31 @@ class WalletRepository @Inject constructor(
             vault.copy(wallets = wallets)
         }
         return ImportResult(imported = imported, skipped = skipped)
+    }
+
+    /**
+     * Adds [address] as a view-only wallet. Selects it when no wallet is selected.
+     * @throws IllegalArgumentException when a wallet already has the address.
+     */
+    suspend fun addViewOnly(name: String, address: String): ViewOnlyWallet {
+        val wallet = ViewOnlyWallet(id = SecretKeystore.newId(), name = name, address = address)
+        dataStore.updateData { vault ->
+            vault.allWallets.find { it.address.equals(address, ignoreCase = true) }?.let {
+                throw IllegalArgumentException("Already added as ${it.name}")
+            }
+            vault.copy(viewOnlyWallets = vault.viewOnlyWallets + wallet, activeWalletId = vault.activeWalletId ?: wallet.id)
+        }
+        return wallet
+    }
+
+    /** Removes a view-only wallet. There are no keys, so no password to check. */
+    suspend fun removeViewOnly(wallet: ViewOnlyWallet) {
+        dataStore.updateData { vault ->
+            vault.copy(
+                viewOnlyWallets = vault.viewOnlyWallets.filterNot { it.id == wallet.id },
+                activeWalletId = vault.activeWalletId.takeUnless { it == wallet.id },
+            )
+        }
     }
 
     suspend fun setActive(id: String?) {

@@ -7,6 +7,13 @@ import kotlinx.serialization.Serializable
 // Persisted and exported shapes. Field names match the web wallet's JSON so keystores, backups
 // and contacts move between the two apps unchanged.
 
+/** A wallet in the picker: one with its keys ([WalletKeystore]) or a [ViewOnlyWallet]. */
+sealed interface Wallet {
+    val id: String
+    val name: String
+    val address: String
+}
+
 /**
  * A wallet: the BIP-39 phrase encrypted with the user's password (keystore v3 format), plus the
  * name and address shown in the UI. The web wallet calls this `UmKeystore`.
@@ -14,12 +21,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WalletKeystore(
     val crypto: KeystoreCrypto,
-    val id: String,
+    override val id: String,
     val version: Int = 3,
     val meta: Meta,
-    val name: String,
-    val address: String,
-) {
+    override val name: String,
+    override val address: String,
+) : Wallet {
     @Serializable
     data class Meta(val type: String, val note: String, val umVersion: String? = null)
 
@@ -30,6 +37,17 @@ data class WalletKeystore(
             "the 12 words secret phrase (aka mnemonic phrase) is encrypted with the password using the keystore encryption process"
     }
 }
+
+/**
+ * An address added without its keys: it shows balances, but can't send, sign or export. The web
+ * wallet has no equivalent, so these stay out of keystore exports and backups.
+ */
+@Serializable
+data class ViewOnlyWallet(
+    override val id: String,
+    override val name: String,
+    override val address: String,
+) : Wallet
 
 /** Wallets on an older storage format (missing `umVersion`); migrating only rewrites metadata. */
 fun WalletKeystore.needsMigration(): Boolean =
@@ -122,8 +140,15 @@ data class NftCollection(
 @Serializable
 data class WalletVault(
     val wallets: List<WalletKeystore> = emptyList(),
+    val viewOnlyWallets: List<ViewOnlyWallet> = emptyList(),
+    /** The id of a wallet in either list. */
     val activeWalletId: String? = null,
-)
+) {
+    /** Wallets with keys, then view-only ones, as the picker lists them. */
+    val allWallets: List<Wallet> get() = wallets + viewOnlyWallets
+
+    val active: Wallet? get() = allWallets.find { it.id == activeWalletId }
+}
 
 /** Tokens and NFT collections the user added by contract address. */
 @Serializable
