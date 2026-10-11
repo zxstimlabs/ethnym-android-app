@@ -1,6 +1,4 @@
 Test build of ETHnym, a native Ethereum wallet.
-New in 0.1.7:
-• Import a view-only wallet with just an address or ENS name, under Manage > Import wallet
-• View-only wallets are tagged in the wallet picker and show their balances
-• Send and Backup are off for view-only wallets, with a banner saying why
+New in 0.1.9:
+• Removed features that weren't ready yet, to match the iOS app: Incoming activity, Cloud sync, restoring from a backup file, and VPN relay
 Please report anything that looks off, especially when sending.

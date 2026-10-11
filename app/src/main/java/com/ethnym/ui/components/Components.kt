@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -60,6 +63,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ethnym.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -172,15 +176,11 @@ fun ErrorText(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-fun ComingSoon(description: String? = null, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(stringResource(R.string.coming_soon), style = MaterialTheme.typography.titleSmall)
-        if (description != null) HintText(description)
-    }
-}
-
-/** Pill tabs for switching between views of one screen, as in Balances (iOS's segmented picker). */
+/**
+ * Pill tabs for switching between views of one screen, as in Balances (iOS's segmented picker).
+ * Labels are centred, so the slim side padding only shows when a label is long, like "View only"
+ * in a row of four; one that still doesn't fit shrinks rather than clips.
+ */
 @Composable
 fun PillTabs(
     tabs: List<String>,
@@ -194,8 +194,15 @@ fun PillTabs(
                 selected = index == selectedIndex,
                 onClick = { onSelect(index) },
                 shape = SegmentedButtonDefaults.itemShape(index, tabs.size),
+                contentPadding = PaddingValues(horizontal = 4.dp),
                 icon = {},
-                label = { Text(title, maxLines = 1) },
+                label = {
+                    Text(
+                        title,
+                        maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = LocalTextStyle.current.fontSize),
+                    )
+                },
             )
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -45,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -64,7 +62,6 @@ import com.ethnym.feature.common.userMessage
 import com.ethnym.feature.wallets.ViewOnlyBanner
 import com.ethnym.feature.wallets.WalletsUiState
 import com.ethnym.feature.wallets.WalletsViewModel
-import com.ethnym.ui.components.ComingSoon
 import com.ethnym.ui.components.CopyButton
 import com.ethnym.ui.components.DetailRow
 import com.ethnym.ui.components.ErrorText
@@ -209,7 +206,6 @@ class LocalBackupViewModel @Inject constructor(
 enum class BackupAction(@param:StringRes val label: Int, @param:StringRes val detail: Int, @param:DrawableRes val icon: Int) {
     Keystore(R.string.keystore, R.string.keystore_detail, R.drawable.ic_key),
     LocalBackup(R.string.local_device_backup, R.string.local_backup_detail, R.drawable.ic_smartphone),
-    CloudSync(R.string.cloud_sync, R.string.coming_soon, R.drawable.ic_cloud),
 }
 
 /**
@@ -284,7 +280,6 @@ fun BackupActionScreen(action: BackupAction, onBack: () -> Unit) {
         when (action) {
             BackupAction.Keystore -> KeystorePage(modifier)
             BackupAction.LocalBackup -> LocalBackupPage(modifier)
-            BackupAction.CloudSync -> CloudSyncPage(modifier)
         }
     }
 }
@@ -395,64 +390,30 @@ private fun KeystorePage(modifier: Modifier, viewModel: KeystoreToolViewModel = 
 
 @Composable
 private fun LocalBackupPage(modifier: Modifier, viewModel: LocalBackupViewModel = hiltViewModel()) {
-    var mode by rememberSaveable { mutableIntStateOf(0) }
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let(viewModel::export)
     }
     FormPage(modifier) {
-        PillTabs(
-            tabs = listOf(stringResource(R.string.export), stringResource(R.string.import_)),
-            selectedIndex = mode,
-            onSelect = { mode = it },
-        )
-        if (mode == 1) {
-            ComingSoon(stringResource(R.string.restore_coming_soon))
-        } else {
-            HintText(stringResource(R.string.local_backup_hint, BackupCipher.KDF_ITERATIONS))
-            HintText(stringResource(R.string.local_backup_password_warning))
-            summary?.let {
-                OutlinedCard(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        DetailRow(stringResource(R.string.wallets), it.wallets.toString())
-                        DetailRow(stringResource(R.string.contacts), it.contacts.toString())
-                        DetailRow(stringResource(R.string.activity_records), it.activity.toString())
-                    }
+        HintText(stringResource(R.string.local_backup_hint, BackupCipher.KDF_ITERATIONS))
+        HintText(stringResource(R.string.local_backup_password_warning))
+        summary?.let {
+            OutlinedCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    DetailRow(stringResource(R.string.wallets), it.wallets.toString())
+                    DetailRow(stringResource(R.string.contacts), it.contacts.toString())
+                    DetailRow(stringResource(R.string.activity_records), it.activity.toString())
                 }
             }
-            PasswordField(value = viewModel.password, onValueChange = { viewModel.password = it }, label = stringResource(R.string.backup_password))
-            Button(
-                onClick = { save.launch(viewModel.fileName()) },
-                enabled = viewModel.password.isNotEmpty() && !viewModel.busy,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(if (viewModel.busy) R.string.encrypting else R.string.download_backup))
-            }
-            viewModel.message?.let { HintText(it) }
         }
-    }
-}
-
-/** Nothing to do yet: what it will be, centred like iOS's empty state. */
-@Composable
-private fun CloudSyncPage(modifier: Modifier) {
-    Column(
-        modifier.padding(32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            painterResource(R.drawable.ic_cloud),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(48.dp),
-        )
-        Text(stringResource(R.string.coming_soon), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            stringResource(R.string.cloud_sync_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        PasswordField(value = viewModel.password, onValueChange = { viewModel.password = it }, label = stringResource(R.string.backup_password))
+        Button(
+            onClick = { save.launch(viewModel.fileName()) },
+            enabled = viewModel.password.isNotEmpty() && !viewModel.busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(if (viewModel.busy) R.string.encrypting else R.string.download_backup))
+        }
+        viewModel.message?.let { HintText(it) }
     }
 }

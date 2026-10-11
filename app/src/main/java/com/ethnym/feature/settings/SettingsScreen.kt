@@ -134,8 +134,8 @@ class SettingsViewModel @Inject constructor(
 }
 
 /**
- * Settings, opened from the top bar: the active wallet and Log out, RPC endpoint, offline mode, the
- * upcoming VPN relay and appearance.
+ * Settings, opened from the top bar: the active wallet and Log out, RPC endpoint, offline mode and
+ * appearance.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -278,10 +278,6 @@ private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Uni
                     Text(stringResource(R.string.offline_notice), style = MaterialTheme.typography.bodySmall)
                 }
             }
-        }
-
-        SectionCard(title = stringResource(R.string.vpn_relay), info = stringResource(R.string.vpn_relay_description)) {
-            HintText(stringResource(R.string.coming_soon))
         }
 
         SectionCard(title = stringResource(R.string.appearance), info = stringResource(R.string.appearance_info)) {

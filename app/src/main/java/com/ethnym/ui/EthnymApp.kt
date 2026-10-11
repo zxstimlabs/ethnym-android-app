@@ -20,7 +20,6 @@ import com.ethnym.feature.wallets.WalletAction
 import com.ethnym.feature.wallets.WalletActionScreen
 import com.ethnym.ui.navigation.AddContact
 import com.ethnym.ui.navigation.BottomSheetSceneStrategy
-import com.ethnym.ui.navigation.CloudSync
 import com.ethnym.ui.navigation.CreateWallet
 import com.ethnym.ui.navigation.DeleteWallet
 import com.ethnym.ui.navigation.ExportWallet
@@ -83,7 +82,6 @@ fun EthnymApp() {
             entry<DeleteWallet> { WalletActionScreen(WalletAction.Delete, onBack = back, onClose = backToMain) }
             entry<KeystoreTool> { BackupActionScreen(BackupAction.Keystore, onBack = back) }
             entry<LocalBackup> { BackupActionScreen(BackupAction.LocalBackup, onBack = back) }
-            entry<CloudSync> { BackupActionScreen(BackupAction.CloudSync, onBack = back) }
             entry<Settings> {
                 SettingsRoute(onBack = back)
             }
@@ -101,5 +99,4 @@ private fun WalletAction.destination(): NavKey = when (this) {
 private fun BackupAction.destination(): NavKey = when (this) {
     BackupAction.Keystore -> KeystoreTool
     BackupAction.LocalBackup -> LocalBackup
-    BackupAction.CloudSync -> CloudSync
 }

@@ -32,6 +32,9 @@
     <string name="create_wallet_hint">Enter a name and a strong password to create a new wallet.</string>
     <string name="wallet_name">Wallet name</string>
     <string name="secret_phrase">Secret phrase</string>
+    <string name="import_tab_phrase">Phrase</string>
+    <string name="import_tab_file">File</string>
+    <string name="import_tab_paste">Paste</string>
     <string name="import_keystore_file">Import with keystore file</string>
     <string name="choose_file">Choose file</string>
     <string name="keystores_in_file">%1$s: %2$d wallet(s) ready to import</string>

@@ -196,6 +196,10 @@ class ImportWalletViewModel @Inject constructor(
         }
     }
 
+    fun clearMessage() {
+        message = null
+    }
+
     fun resetPhraseForm() {
         name = ""
         password = ""

@@ -40,9 +40,6 @@ data object KeystoreTool : NavKey
 @Serializable
 data object LocalBackup : NavKey
 
-@Serializable
-data object CloudSync : NavKey
-
 /** RPC endpoint, offline mode, appearance and log out. Opens from the top bar. */
 @Serializable
 data object Settings : NavKey

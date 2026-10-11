@@ -17,9 +17,6 @@
     <string name="note_optional">Note (optional)</string>
 
     <!-- Activity -->
-    <string name="outgoing">Outgoing</string>
-    <string name="incoming">Incoming</string>
-    <string name="incoming_coming_soon">Incoming transfers will appear here.</string>
     <string name="no_active_wallet">No active wallet selected.</string>
     <string name="no_activity_yet">No activity yet.</string>
 
@@ -30,7 +27,6 @@
     <string name="backup_info">Ways to keep a copy of your wallets. Everything is encrypted with a password you choose before it\'s saved.</string>
     <string name="keystore_detail">Encrypt any secret phrase to a keystore, or decrypt a keystore back to its phrase.</string>
     <string name="local_backup_detail">Export wallets, contacts, settings and activity as one encrypted file.</string>
-    <string name="restore_coming_soon">Restoring from a backup file isn\'t available yet.</string>
     <string name="keystore_encrypt_hint">Convert any secret phrase to a keystore.</string>
     <string name="keystore_decrypt_hint">Decrypt any keystore to its secret phrase.</string>
     <string name="no_backup_keystore">No backup keystore</string>
@@ -43,8 +39,6 @@
     <string name="backup_password">Backup password</string>
     <string name="download_backup">Download backup</string>
     <string name="encrypting">Encrypting…</string>
-    <string name="cloud_sync">Cloud sync</string>
-    <string name="cloud_sync_description">Store your encrypted wallet backup in the cloud, with your data always encrypted on the device before it leaves.</string>
 
     <!-- Settings -->
     <string name="log_out">Log out</string>
@@ -74,6 +68,4 @@
     <string name="offline_fetching_disabled">Offline: fetching disabled</string>
     <string name="online">Online</string>
     <string name="offline_notice">All balance and network queries are paused. You can still sign transactions in the Sign tab; turn offline mode off to broadcast.</string>
-    <string name="vpn_relay">VPN relay</string>
-    <string name="vpn_relay_description">Route RPC traffic through a built-in VPN relay to improve privacy and prevent IP-based tracking by node providers.</string>
 </resources>
