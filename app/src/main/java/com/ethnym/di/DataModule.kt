@@ -17,6 +17,8 @@ import com.ethnym.data.settings.DataStoreUserPreferencesRepository
 import com.ethnym.data.settings.UserPreferencesRepository
 import com.ethnym.data.storage.EncryptedJsonSerializer
 import com.ethnym.data.storage.KeystoreCipher
+import com.ethnym.feature.lock.DeviceAuthenticator
+import com.ethnym.feature.lock.SystemDeviceAuthenticator
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -35,6 +37,9 @@ abstract class DataModule {
     abstract fun bindUserPreferencesRepository(
         impl: DataStoreUserPreferencesRepository,
     ): UserPreferencesRepository
+
+    @Binds
+    abstract fun bindDeviceAuthenticator(impl: SystemDeviceAuthenticator): DeviceAuthenticator
 
     companion object {
         @Provides

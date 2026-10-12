@@ -2,6 +2,7 @@ package com.ethnym.data.settings
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -15,12 +16,16 @@ enum class ThemeMode { System, Light, Dark }
 
 data class UserPreferences(
     val themeMode: ThemeMode = ThemeMode.System,
+    /** The biometric app lock. Kept on this device, not in backups. */
+    val appLockEnabled: Boolean = false,
 )
 
 interface UserPreferencesRepository {
     val userPreferences: Flow<UserPreferences>
 
     suspend fun setThemeMode(mode: ThemeMode)
+
+    suspend fun setAppLockEnabled(enabled: Boolean)
 }
 
 /**
@@ -36,6 +41,7 @@ class DataStoreUserPreferencesRepository @Inject constructor(
         .map { prefs ->
             UserPreferences(
                 themeMode = prefs[THEME_MODE]?.let { stored -> ThemeMode.entries.find { it.name == stored } } ?: ThemeMode.System,
+                appLockEnabled = prefs[APP_LOCK] ?: false,
             )
         }
 
@@ -43,7 +49,12 @@ class DataStoreUserPreferencesRepository @Inject constructor(
         dataStore.edit { it[THEME_MODE] = mode.name }
     }
 
+    override suspend fun setAppLockEnabled(enabled: Boolean) {
+        dataStore.edit { it[APP_LOCK] = enabled }
+    }
+
     private companion object {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val APP_LOCK = booleanPreferencesKey("app_lock")
     }
 }

@@ -40,6 +40,19 @@
     <string name="download_backup">Download backup</string>
     <string name="encrypting">Encrypting…</string>
 
+    <!-- App lock -->
+    <string name="security">Security</string>
+    <string name="app_lock_info">Locks ETHnym whenever you leave it, so someone holding your unlocked phone can\'t look through your wallets. Biometrics open it again, or your screen lock if they don\'t work. Sending still needs the wallet password.</string>
+    <string name="unlock_with_biometric">Unlock with Biometric</string>
+    <string name="biometric_not_enrolled">Set up fingerprint or face unlock in your phone\'s Settings to use it.</string>
+    <string name="biometric_no_hardware">This device doesn\'t have a fingerprint or face sensor.</string>
+    <string name="biometric_unavailable">Biometrics aren\'t available right now.</string>
+    <string name="turn_on_biometric_unlock">Turn on biometric unlock</string>
+    <string name="turn_off_biometric_unlock">Turn off biometric unlock</string>
+    <string name="unlock_ethnym">Unlock ETHnym</string>
+    <string name="unlock">Unlock</string>
+    <string name="app_locked">ETHnym is locked</string>
+
     <!-- Settings -->
     <string name="log_out">Log out</string>
     <string name="wallet_settings_info">The wallet you\'re using. Logging out deselects it. Its keystore stays on this device, so you can select it again from the Wallets tab.</string>

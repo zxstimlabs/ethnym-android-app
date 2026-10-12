@@ -38,7 +38,7 @@ android {
         minSdk = 28
         targetSdk = 37
         versionCode = 2
-        versionName = "0.1.9"
+        versionName = "0.1.10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -107,6 +107,10 @@ play {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    // The app lock's biometric prompt. It needs a FragmentActivity; fragment is pinned because biometric
+    // 1.1.0 would otherwise pull in a fragment release older than the activity library.
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

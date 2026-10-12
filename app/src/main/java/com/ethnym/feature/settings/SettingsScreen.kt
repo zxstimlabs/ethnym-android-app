@@ -1,5 +1,6 @@
 package com.ethnym.feature.settings
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +46,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,6 +62,9 @@ import com.ethnym.data.settings.ThemeMode
 import com.ethnym.data.settings.UserPreferencesRepository
 import com.ethnym.data.settings.validateRpcUrl
 import com.ethnym.data.wallet.WalletRepository
+import com.ethnym.feature.lock.AppLock
+import com.ethnym.feature.lock.BiometricStatus
+import com.ethnym.feature.lock.authenticate
 import com.ethnym.feature.wallets.ViewOnlyTag
 import com.ethnym.ui.components.AddressText
 import com.ethnym.ui.components.HintText
@@ -76,6 +83,7 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val walletRepository: WalletRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    val appLock: AppLock,
 ) : ViewModel() {
 
     val settings: StateFlow<WalletSettings?> = settingsRepository.settings
@@ -134,8 +142,8 @@ class SettingsViewModel @Inject constructor(
 }
 
 /**
- * Settings, opened from the top bar: the active wallet and Log out, RPC endpoint, offline mode and
- * appearance.
+ * Settings, opened from the top bar: the active wallet and Log out, the app lock, RPC endpoint,
+ * offline mode and appearance. The order follows the iOS app.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,6 +209,8 @@ private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Uni
                 Text(stringResource(R.string.log_out))
             }
         }
+
+        AppLockSection(viewModel.appLock)
 
         SectionCard(title = stringResource(R.string.rpc_endpoint), info = stringResource(R.string.rpc_endpoint_info)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -307,6 +317,50 @@ private fun SettingsContent(viewModel: SettingsViewModel, onLoggedOut: () -> Uni
 }
 
 /** A saved RPC: its name and URL, with buttons to make it active or delete it. */
+/**
+ * The app lock's switch. Turning it on takes biometrics, to show they work; turning it off also
+ * takes the screen lock. Off and greyed out while the device has no biometrics set up, with why.
+ */
+@Composable
+private fun AppLockSection(lock: AppLock) {
+    val activity = LocalActivity.current as FragmentActivity
+    val scope = rememberCoroutineScope()
+    var error by remember { mutableStateOf<String?>(null) }
+    val on = lock.enabled == true
+    val status = lock.biometricStatus
+    val canToggle = !lock.authenticating && (on || status == BiometricStatus.Available)
+    val turnOn = stringResource(R.string.turn_on_biometric_unlock)
+    val turnOff = stringResource(R.string.turn_off_biometric_unlock)
+    val cancel = stringResource(R.string.cancel)
+    SectionCard(title = stringResource(R.string.security), info = stringResource(R.string.app_lock_info)) {
+        // The whole row toggles, and reads as one switch to screen readers.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .toggleable(value = on, enabled = canToggle, role = Role.Switch) { turningOn ->
+                    scope.launch {
+                        error = lock.setEnabled(turningOn) { biometricsOnly ->
+                            activity.authenticate(if (turningOn) turnOn else turnOff, cancel, biometricsOnly)
+                        }
+                    }
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(painterResource(R.drawable.ic_fingerprint), contentDescription = null)
+            Text(stringResource(R.string.unlock_with_biometric), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Switch(checked = on, onCheckedChange = null, enabled = canToggle)
+        }
+        val note = error ?: when (status) {
+            BiometricStatus.Available -> null
+            BiometricStatus.NotEnrolled -> stringResource(R.string.biometric_not_enrolled)
+            BiometricStatus.NoHardware -> stringResource(R.string.biometric_no_hardware)
+            BiometricStatus.Unavailable -> stringResource(R.string.biometric_unavailable)
+        }
+        note?.let { HintText(it) }
+    }
+}
+
 @Composable
 private fun RpcRow(entry: RpcEntry, active: Boolean, onSelect: () -> Unit, onDelete: () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
